@@ -1,1089 +1,193 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hybrid Tracking → Warehouse Intelligence</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 <style>
-/* ── RESET ── */
-*, *::before, *::after { box-sizing: border-box; }
-
-/* ── THEME ── */
-:root {
-  --bg: #f4f5f7;
-  --card-bg: #ffffff;
-  --text: #1f1f1f;
-  --subtext: #4b5563;
-  --border: #e5e7eb;
-  --accent: #4f46e5;
-  --accent-h: #4338ca;
-  --bar-bg: #e5e7eb;
-  --bar-fill: #4f46e5;
-  --c-green: #16a34a;
-  --c-blue: #2563eb;
-  --c-yellow: #eab308;
-  --c-red: #dc2626;
-  --ber-bg: #dcfce7; --ber-border: #16a34a; --ber-text: #14532d;
-  --poz-bg: #fee2e2; --poz-border: #dc2626; --poz-text: #7f1d1d;
-  --unk-bg: #fef9c3; --unk-border: #ca8a04; --unk-text: #713f12;
-  --res-bg: #eef2ff; --res-border: #6366f1;
-}
-body.dark {
-  --bg: #0f1115; --card-bg: #1a1c22; --text: #f3f4f6; --subtext: #9ca3af;
-  --border: #2d2f36; --accent: #818cf8; --accent-h: #6366f1;
-  --bar-bg: #2d2f36; --bar-fill: #818cf8;
-  --ber-bg: #052e16; --ber-border: #34d399; --ber-text: #bbf7d0;
-  --poz-bg: #4c0519; --poz-border: #f87171; --poz-text: #fecaca;
-  --unk-bg: #451a03; --unk-border: #fbbf24; --unk-text: #fde68a;
-  --res-bg: #1f2230; --res-border: #818cf8;
+/* GLOBAL CONTENT FONT */
+body,
+.wrap,
+.sub,
+.section,
+.card-label,
+.card-value,
+.card-sub,
+.pill,
+.pattern-desc,
+.example,
+.signal-row,
+.signal-label,
+.signal-pct,
+.model-desc,
+.model-acc,
+.ambig-row,
+.ambig-name {
+    font-family: Arial, sans-serif;
 }
 
-/* ── BASE ── */
-body { margin:0; padding:2rem; background:var(--bg); font-family:'JetBrains Mono',monospace; color:var(--text); transition:background .3s,color .3s; }
-.card { background:var(--card-bg); padding:2rem; border-radius:14px; max-width:960px; margin:auto; box-shadow:0 4px 14px rgba(0,0,0,.08); border:1px solid var(--border); transition:background .3s,border .3s; }
-h1 { font-family:'Syne',sans-serif; font-size:28px; font-weight:700; margin:0 0 .25rem; letter-spacing:-.5px; color:var(--text); }
-p.subtitle { font-size:13px; color:var(--subtext); margin:0 0 1.5rem; }
-label { font-family:'Syne',sans-serif; font-size:14px; font-weight:600; margin-top:1.25rem; display:block; color:var(--text); }
-input[type="file"], input[type="text"] { width:100%; padding:.7rem 1rem; margin-top:.4rem; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-family:'JetBrains Mono',monospace; font-size:14px; transition:border .2s,box-shadow .2s,background .2s; }
-input[type="text"]:focus { border-color:var(--accent); background:var(--card-bg); outline:none; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
-button { padding:.7rem 1.4rem; background:var(--accent); color:#fff; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background .2s,opacity .2s; }
-button:hover:not(:disabled) { background:var(--accent-h); }
-button:disabled { opacity:.45; cursor:default; }
-
-/* ── HEADER ── */
-.header-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.25rem; gap:1rem; flex-wrap:wrap; }
-.header-btns { display:flex; gap:8px; flex-shrink:0; }
-#resetBtn { background:transparent; border:1px solid var(--border); color:var(--subtext); font-size:13px; padding:.5rem 1rem; }
-#resetBtn:hover:not(:disabled) { background:var(--bg); color:var(--text); }
-
-/* ── TRAINING PROGRESS ── */
-#trainingProgressContainer { margin-bottom:1rem; display:none; }
-#trainingProgressLabel { font-family:'Syne',sans-serif; font-size:13px; font-weight:600; margin-bottom:5px; color:var(--subtext); }
-.progress-track { background:var(--bar-bg); height:18px; border-radius:999px; overflow:hidden; }
-#trainingProgressBar { height:100%; width:0%; background:var(--accent); border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; transition:width .25s ease; min-width:30px; }
-
-/* ── SCAN COUNTERS ── */
-.scan-summary { display:flex; justify-content:space-around; background:var(--bg); padding:1rem; border-radius:10px; margin-bottom:1.5rem; border:1px solid var(--border); gap:1rem; flex-wrap:wrap; }
-.scan-box { text-align:center; }
-.scan-label { font-size:12px; color:var(--subtext); margin-bottom:4px; }
-.scan-value { font-size:22px; font-weight:700; color:var(--text); }
-
-/* ── SECTION TITLE ── */
-.section-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:600; margin:1.5rem 0 .5rem; color:var(--text); }
-
-/* ── WAREHOUSE BARS ── */
-.warehouse-summary { border:1px solid var(--border); border-radius:10px; padding:.75rem 1rem; background:var(--bg); }
-.warehouse-row { display:flex; align-items:center; gap:.75rem; margin:.3rem 0; }
-.warehouse-label { width:90px; font-size:13px; color:var(--subtext); flex-shrink:0; }
-.warehouse-bar { flex:1; background:var(--bar-bg); border-radius:999px; overflow:hidden; height:20px; }
-.warehouse-bar-fill { height:100%; background:var(--bar-fill); border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; white-space:nowrap; transition:width .3s ease; min-width:2px; }
-.warehouse-count { width:40px; text-align:right; font-size:13px; color:var(--text); flex-shrink:0; }
-
-/* ── MERCHANT TABLE ── */
-.merchant-summary { margin-top:1.25rem; border:1px solid var(--border); border-radius:10px; background:var(--bg); padding:.75rem 1rem; }
-.merchant-summary-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:600; margin-bottom:.5rem; color:var(--text); }
-.merchant-summary-header, .merchant-row { display:grid; grid-template-columns:1fr 70px 60px; font-size:13px; padding:.2rem 0; gap:.5rem; }
-.merchant-summary-header { font-weight:600; color:var(--subtext); border-bottom:1px solid var(--border); padding-bottom:.35rem; margin-bottom:.2rem; }
-.merchant-summary-body { max-height:200px; overflow-y:auto; }
-.merchant-row:nth-child(odd) { background:rgba(0,0,0,.02); }
-body.dark .merchant-row:nth-child(odd) { background:rgba(255,255,255,.03); }
-.merchant-row > div:last-child, .merchant-row > div:nth-child(2) { text-align:right; }
-
-/* ── DESKTOP RESULT BOX ── */
-.result { margin-top:1.5rem; padding:1.25rem 1.5rem; border-radius:12px; font-size:14px; border:2px solid var(--res-border); background:var(--res-bg); transition:background .3s,border .3s; }
-.result.ber     { background:var(--ber-bg); border-color:var(--ber-border); }
-.result.poz     { background:var(--poz-bg); border-color:var(--poz-border); }
-.result.unknown { background:var(--unk-bg); border-color:var(--unk-border); }
-.result.error   { background:#fef2f2; border-color:#dc2626; }
-body.dark .result.error { background:#3a0f0f; }
-
-/* Desktop warehouse display — big & clear */
-.result-wh-block { display:flex; align-items:center; gap:1rem; margin-bottom:.75rem; flex-wrap:wrap; }
-.result-wh-icon { font-size:36px; line-height:1; flex-shrink:0; }
-.result-wh-name { font-family:'Syne',sans-serif; font-size:32px; font-weight:700; line-height:1.1; }
-.result-wh-name.ber { color:var(--ber-text); }
-.result-wh-name.poz { color:var(--poz-text); }
-.result-wh-name.unknown { color:var(--unk-text); }
-.result-divider { border:none; border-top:1px solid var(--border); margin:.75rem 0; }
-
-.confidence-row { display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem; }
-.confidence-badge { padding:.2rem .65rem; border-radius:999px; font-size:11px; font-weight:700; color:#fff; letter-spacing:.3px; flex-shrink:0; }
-.conf-high    { background:var(--c-green); }
-.conf-mid     { background:var(--c-blue); }
-.conf-low     { background:var(--c-yellow); color:#111; }
-.conf-verylow { background:var(--c-red); }
-.confidence-bar-container { flex:1; background:var(--bar-bg); border-radius:999px; overflow:hidden; height:14px; }
-.confidence-bar-fill { height:100%; border-radius:999px; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:10px; color:#fff; transition:width .35s ease; min-width:2px; }
-.confidence-pct { font-size:13px; font-weight:600; color:var(--subtext); flex-shrink:0; min-width:36px; text-align:right; }
-
-.layer-details { font-size:12px; color:var(--subtext); line-height:1.7; margin-top:.25rem; }
-.layer-details span { font-weight:600; color:var(--text); }
-
-/* ── LOOKUP ROW ── */
-.lookup-row { display:flex; gap:.75rem; margin-top:1.25rem; align-items:flex-end; flex-wrap:wrap; }
-.lookup-row > div { flex:1; min-width:180px; }
-.lookup-row > button { margin-top:0; flex-shrink:0; align-self:flex-end; }
-
-/* ── MODEL PANEL ── */
-#modelPanel { margin-top:1.25rem; padding:.85rem 1rem; border-radius:10px; border:1px solid var(--border); background:var(--bg); display:none; }
-#saveModelBtn { margin-top:0; font-size:13px; padding:.5rem 1rem; background:var(--c-green); }
-
-/* ── THEME FAB ── */
-#themeFab { position:fixed; bottom:1.25rem; right:1.25rem; width:40px; height:40px; border-radius:50%; background:var(--card-bg); border:1px solid var(--border); box-shadow:0 2px 8px rgba(0,0,0,.15); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:background .2s,border .2s,box-shadow .2s; z-index:2000; padding:0; line-height:1; }
-#themeFab:hover { box-shadow:0 4px 14px rgba(0,0,0,.2); }
-
-/* ══════════════════════════════════════
-   MOBILE SCANNER VIEW
-══════════════════════════════════════ */
-/* Elements hidden in mobile */
-body.mobile p.subtitle,
-body.mobile .section-title,
-body.mobile .warehouse-summary,
-body.mobile .merchant-summary,
-body.mobile #modelPanel,
-body.mobile #trainingProgressContainer,
-body.mobile #result,
-body.mobile .desktop-only { display:none !important; }
-
-body.mobile { padding:0; }
-body.mobile .card { max-width:100%; border-radius:0; border:none; box-shadow:none; padding:1rem 1rem .75rem; }
-body.mobile h1 { font-size:20px; }
-
-/* Compact counters */
-body.mobile .scan-summary { padding:.6rem .75rem; margin-bottom:.75rem; gap:.5rem; }
-body.mobile .scan-label { font-size:11px; }
-body.mobile .scan-value { font-size:18px; }
-
-/* Hide predict button — Enter on scanner gun fires prediction */
-body.mobile #lookupBtn { display:none; }
-
-/* Big scan input */
-body.mobile .lookup-row { margin-top:.5rem; }
-body.mobile #returnIdInput { font-size:22px; padding:1rem 1.1rem; border-radius:12px; border:2px solid var(--border); letter-spacing:.04em; }
-body.mobile #returnIdInput:focus { border-color:var(--accent); box-shadow:0 0 0 4px rgba(99,102,241,.15); }
-
-.mobile-hint { font-size:12px; color:var(--subtext); text-align:center; margin-top:.6rem; padding-bottom:.5rem; }
-body.desktop .mobile-hint { display:none; }
-
-/* ── MOBILE FULL-SCREEN RESULT OVERLAY ── */
-.mob-overlay {
-  position:fixed; inset:0; z-index:1000;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:2.5rem 2rem;
-  background:var(--bg);
-  opacity:0; pointer-events:none;
-  transition:opacity .15s ease;
+/* HEADERS — EUROSTILE EXTENDED BOLD */
+h2,
+.section-title,
+.pattern-title,
+.model-name {
+    font-family: "Eurostile Extended Bold", Arial, sans-serif;
+    font-weight: 700;
 }
-.mob-overlay.show { opacity:1; pointer-events:auto; }
 
-/* Per-warehouse background colour */
-.mob-overlay.ber     { background:var(--ber-bg); }
-.mob-overlay.poz     { background:var(--poz-bg); }
-.mob-overlay.unknown { background:var(--unk-bg); }
-
-.mob-icon { font-size:56px; line-height:1; margin-bottom:.5rem; }
-.mob-to-label { font-family:'Syne',sans-serif; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.14em; color:var(--subtext); margin-bottom:.35rem; }
-
-/* THE warehouse name — massive */
-.mob-wh-name {
-  font-family:'Syne',sans-serif;
-  font-size:clamp(40px,15vw,80px);
-  font-weight:700;
-  line-height:1;
-  text-align:center;
-  word-break:break-word;
-  max-width:100%;
-}
-.mob-wh-name.ber     { color:var(--ber-text); }
-.mob-wh-name.poz     { color:var(--poz-text); }
-.mob-wh-name.unknown { color:var(--unk-text); }
-.mob-wh-name.other   { color:var(--text); }
-
-/* Confidence row */
-.mob-conf-row { display:flex; align-items:center; gap:.75rem; margin-top:1.5rem; width:100%; max-width:300px; }
-.mob-conf-badge { padding:.25rem .75rem; border-radius:999px; font-size:12px; font-weight:700; color:#fff; white-space:nowrap; flex-shrink:0; }
-.mob-conf-track { flex:1; height:10px; background:rgba(0,0,0,.1); border-radius:999px; overflow:hidden; }
-body.dark .mob-conf-track { background:rgba(255,255,255,.1); }
-.mob-conf-bar { height:100%; background:var(--accent); border-radius:999px; transition:width .4s ease; }
-.mob-conf-pct { font-size:13px; font-weight:700; color:var(--subtext); min-width:38px; text-align:right; }
-
-/* Timer ring */
-.mob-timer-ring {
-  position:absolute; bottom:2rem;
-  width:36px; height:36px;
-}
-.mob-timer-ring circle {
-  fill:none; stroke:var(--border); stroke-width:3;
-  cx:18; cy:18; r:15;
-}
-.mob-timer-ring .sweep {
-  stroke:var(--accent); stroke-linecap:round;
-  stroke-dasharray:94.2; stroke-dashoffset:94.2;
-  transform:rotate(-90deg); transform-origin:18px 18px;
-  transition:stroke-dashoffset 2.4s linear;
-}
-.mob-overlay.show .mob-timer-ring .sweep { stroke-dashoffset:0; }
+.wrap { padding: 1.5rem 0; font-size: 14px; }
+h2 { font-size: 18px; margin: 0 0 .25rem; color: var(--color-text-primary); }
+.sub { font-size: 13px; color: var(--color-text-secondary); margin: 0 0 1.5rem; }
+.section { margin-bottom: 2rem; }
+.section-title { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--color-text-secondary); margin: 0 0 .75rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: .9rem 1rem; }
+.card-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: .3rem; }
+.card-value { font-size: 22px; color: var(--color-text-primary); }
+.card-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: .1rem; }
+.pill { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; margin: 2px; }
+.pill-ber { background: #dcfce7; color: #14532d; }
+.pill-poz1 { background: #dbeafe; color: #1e3a8a; }
+.pill-poz2 { background: #fef9c3; color: #713f12; }
+body.dark .pill-ber { background: #052e16; color: #bbf7d0; }
+body.dark .pill-poz1 { background: #1e3a8a; color: #bfdbfe; }
+body.dark .pill-poz2 { background: #451a03; color: #fde68a; }
+.pattern-row { display: flex; align-items: flex-start; gap: 1rem; padding: .85rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.pattern-row:last-child { border-bottom: none; }
+.pattern-badge { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--color-background-secondary); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--color-text-secondary); }
+.pattern-body { flex: 1; }
+.pattern-title { font-size: 13px; color: var(--color-text-primary); margin-bottom: .2rem; }
+.pattern-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: .35rem; }
+.example { font-family: var(--font-mono); font-size: 11px; background: var(--color-background-secondary); padding: 2px 7px; border-radius: 4px; color: var(--color-text-primary); display: inline-block; margin: 2px 2px 0 0; }
+.signal-row { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; font-size: 12px; }
+.signal-label { width: 140px; flex-shrink: 0; color: var(--color-text-secondary); }
+.bar-track { flex: 1; height: 8px; background: var(--color-border-tertiary); border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; }
+.bar-green { background: #16a34a; }
+.bar-blue { background: #2563eb; }
+.bar-amber { background: #ca8a04; }
+.bar-red { background: #dc2626; }
+.signal-pct { width: 36px; text-align: right; font-weight: 500; color: var(--color-text-primary); }
+.model-card { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: .75rem; }
+.model-name { font-size: 13px; color: var(--color-text-primary); margin-bottom: .15rem; }
+.model-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 1.5; }
+.model-acc { font-size: 13px; margin-top: .4rem; }
+.acc-high { color: #16a34a; }
+.acc-mid { color: #2563eb; }
+.acc-low { color: #ca8a04; }
+.rec-badge { display: inline-block; font-size: 10px; font-weight: 500; background: var(--color-background-info); color: var(--color-text-info); padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+.ambig-row { font-size: 12px; padding: .3rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; gap: .5rem; }
+.ambig-row:last-child { border-bottom: none; }
+.ambig-name { flex: 1; color: var(--color-text-primary); }
+.divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 1.5rem 0; }
 </style>
-</head>
 
-<body class="desktop">
-<div class="card">
+<div class="wrap" aria-label="Tracking ID pattern analysis for 2546 returns">
 
-  <!-- HEADER -->
-  <div class="header-row">
-    <div>
-      <h1>Hybrid Tracking → Warehouse</h1>
-      <p class="subtitle">Upload a CSV (TrackingID, Merchant, Warehouse) — the hybrid engine learns patterns and predicts with a confidence score.</p>
-    </div>
-    <div class="header-btns">
-      <button id="viewToggleBtn">Mobile View</button>
-      <button id="resetBtn">Reset</button>
-    </div>
-  </div>
+<h2>Tracking ID pattern analysis</h2>
+<p class="sub">2,546 returns · 3 warehouses · columns A (TrackingID) and C (Warehouse)</p>
 
-  <!-- TRAINING PROGRESS (desktop only) -->
-  <div id="trainingProgressContainer">
-    <div id="trainingProgressLabel">Training model…</div>
-    <div class="progress-track"><div id="trainingProgressBar">0%</div></div>
-  </div>
-
-  <!-- SCAN COUNTERS — visible both views -->
-  <div class="scan-summary">
-    <div class="scan-box"><div class="scan-label">BER3</div><div class="scan-value" id="berCount">0</div></div>
-    <div class="scan-box"><div class="scan-label">POZ</div><div class="scan-value" id="pozCount">0</div></div>
-    <div class="scan-box"><div class="scan-label">Other</div><div class="scan-value" id="otherCount">0</div></div>
-    <div class="scan-box"><div class="scan-label">Total</div><div class="scan-value" id="totalCount">0</div></div>
-  </div>
-
-  <!-- WAREHOUSE SUMMARY — desktop only (hidden by CSS in mobile) -->
-  <div class="section-title">Warehouse Summary (Session)</div>
-  <div id="warehouseSummary" class="warehouse-summary">
-    <div style="font-size:13px;color:var(--subtext);">No scans yet.</div>
-  </div>
-
-  <!-- MERCHANT SUMMARY — desktop only -->
-  <div class="merchant-summary">
-    <div class="merchant-summary-title">Merchant Summary (Session)</div>
-    <div class="merchant-summary-header">
-      <div>Merchant</div><div style="text-align:right">Count</div><div style="text-align:right">%</div>
-    </div>
-    <div id="merchantSummaryBody" class="merchant-summary-body">
-      <div style="font-size:13px;color:var(--subtext);">No scans yet.</div>
-    </div>
-  </div>
-
-  <!-- ═══ DESKTOP TRAINING / MODEL PANEL ═══ -->
-  <div class="desktop-only" id="desktopModelArea">
-
-    <!-- STATE A: Load model (default, shown when no model loaded) -->
-    <div id="stateLoad" style="margin-top:1.25rem; padding:1.25rem 1.5rem; border-radius:12px; border:2px dashed var(--border); background:var(--bg); text-align:center;">
-      <div style="font-size:28px; margin-bottom:.5rem;">🧠</div>
-      <div style="font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--text); margin-bottom:.25rem;">Load your trained model</div>
-      <div style="font-size:12px; color:var(--subtext); margin-bottom:1rem;">Open a previously saved <code>warehouse_model.json</code> to start predicting instantly — no retraining needed.</div>
-      <label id="modelFileLabel" style="display:inline-block; margin-top:0; padding:.65rem 1.4rem; background:var(--accent); color:#fff; border-radius:10px; font-family:'Syne',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background .2s;">
-        📂 Open model file
-        <input type="file" id="modelFile" accept=".json" style="display:none;">
-      </label>
-      <div style="margin-top:1rem; font-size:12px; color:var(--subtext);">
-        No model yet? <button id="goTrainBtn" style="background:none; border:none; padding:0; color:var(--accent); font-size:12px; font-family:'JetBrains Mono',monospace; cursor:pointer; text-decoration:underline;">Train a new one →</button>
-      </div>
-    </div>
-
-    <!-- STATE B: Model ready (shown after model loaded/trained) -->
-    <div id="stateReady" style="display:none; margin-top:1.25rem; padding:.85rem 1.25rem; border-radius:12px; border:1px solid var(--ber-border); background:var(--ber-bg); display:none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.5rem;">
-        <div>
-          <div style="font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--ber-text);">✅ Model ready</div>
-          <div id="modelStatusReady" style="font-size:12px; color:var(--subtext); margin-top:.2rem;"></div>
-        </div>
-        <div style="display:flex; gap:.5rem; align-items:center;">
-          <button id="saveModelBtn" style="margin-top:0; font-size:12px; padding:.45rem .9rem; background:var(--c-green);">⬇ Save model</button>
-          <!-- Hidden retrain trigger — subtle, small, tucked away -->
-          <button id="showRetrainBtn" title="Retrain with new data" style="margin-top:0; font-size:11px; padding:.4rem .7rem; background:transparent; border:1px solid var(--border); color:var(--subtext); border-radius:8px;">⚙</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- STATE C: Retrain (hidden by default, revealed by ⚙ button) -->
-    <div id="stateRetrain" style="display:none; margin-top:1rem; padding:1rem 1.25rem; border-radius:12px; border:1px dashed var(--unknown-border); background:var(--unk-bg);">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.75rem;">
-        <div style="font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:var(--unk-text);">🔄 Retrain with new dataset</div>
-        <button id="cancelRetrainBtn" style="margin-top:0; font-size:11px; padding:.35rem .7rem; background:transparent; border:1px solid var(--border); color:var(--subtext); border-radius:8px;">✕ Cancel</button>
-      </div>
-      <div style="font-size:12px; color:var(--subtext); margin-bottom:.75rem;">Upload a new CSV to retrain from scratch. This will replace the current model.</div>
-      <label style="font-size:13px; margin-top:0;">Upload CSV <span style="font-weight:400;color:var(--subtext);font-size:11px;">(TrackingID, Merchant, Warehouse)</span></label>
-      <input type="file" id="csvFile" accept=".csv">
-    </div>
-
-    <!-- Shared status line -->
-    <div id="modelStatus" style="font-size:12px; color:var(--subtext); margin-top:.5rem; min-height:1.2em;"></div>
-
-  </div>
-
-  <!-- TRACKING ID INPUT + PREDICT BUTTON -->
-  <div class="lookup-row">
-    <div>
-      <label style="margin-top:0;">Tracking ID</label>
-      <input type="text" id="returnIdInput" placeholder="e.g. DE123456789DE" autocomplete="off" spellcheck="false">
-    </div>
-    <button id="lookupBtn" disabled>Predict Warehouse</button>
-  </div>
-
-  <!-- MOBILE HINT -->
-  <div class="mobile-hint">Scan barcode or type ID — result appears instantly</div>
-
-  <!-- DESKTOP RESULT BOX -->
-  <div id="result" class="result" style="display:none;"></div>
-
-</div><!-- /card -->
-
-<!-- MOBILE FULL-SCREEN RESULT OVERLAY -->
-<div class="mob-overlay" id="mobOverlay">
-  <div class="mob-icon">📦</div>
-  <div class="mob-to-label">Send to</div>
-  <div class="mob-wh-name" id="mobWhName">—</div>
-  <div class="mob-conf-row">
-    <div class="mob-conf-badge conf-high" id="mobConfBadge">HIGH</div>
-    <div class="mob-conf-track"><div class="mob-conf-bar" id="mobConfBar" style="width:0%"></div></div>
-    <div class="mob-conf-pct" id="mobConfPct">0%</div>
-  </div>
-  <svg class="mob-timer-ring" viewBox="0 0 36 36">
-    <circle cx="18" cy="18" r="15"/>
-    <circle class="sweep" cx="18" cy="18" r="15"/>
-  </svg>
+<div class="cards">
+  <div class="card"><div class="card-label">Total records</div><div class="card-value">2,546</div></div>
+  <div class="card"><div class="card-label">BER3</div><div class="card-value" style="color:#16a34a">1,686</div><div class="card-sub">66.2%</div></div>
+  <div class="card"><div class="card-label">POZ1</div><div class="card-value" style="color:#2563eb">506</div><div class="card-sub">19.9%</div></div>
+  <div class="card"><div class="card-label">POZ2</div><div class="card-value" style="color:#ca8a04">354</div><div class="card-sub">13.9%</div></div>
+  <div class="card"><div class="card-label">Unique merchants</div><div class="card-value">190</div></div>
 </div>
 
-<!-- THEME FAB -->
-<button id="themeFab" title="Toggle dark mode">🌙</button>
+<hr class="divider">
 
-<script>
-/* ══════════════════════════════════════════════
-   THEME + VIEW TOGGLE
-══════════════════════════════════════════════ */
-document.getElementById("themeFab").addEventListener("click", () => {
-  document.body.classList.toggle("dark");
-  document.getElementById("themeFab").textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-});
-
-document.getElementById("viewToggleBtn").addEventListener("click", () => {
-  const goMobile = document.body.classList.contains("desktop");
-  document.body.classList.toggle("desktop", !goMobile);
-  document.body.classList.toggle("mobile",  goMobile);
-  document.getElementById("viewToggleBtn").textContent = goMobile ? "Desktop View" : "Mobile View";
-  hideMobOverlay();
-  if (goMobile) setTimeout(() => document.getElementById("returnIdInput").focus(), 80);
-});
-
-document.getElementById("resetBtn").addEventListener("click", () => {
-  if (!confirm("Reset session counters?")) return;
-  resetSession();
-});
-
-/* ══════════════════════════════════════════════
-   DATA STRUCTURES
-══════════════════════════════════════════════ */
-let mapping = {}, learnedPatterns = {}, nGramStats = {}, markovStats = {};
-let warehouseIndex = {}, indexWarehouse = {}, charSet = new Set(), lstmModel = null, maxSeqLen = 24;
-let lengthStats = {}, suffixStats = {}, merchantStats = {}, positionalStats = {};
-let charIndexCache = null; // rebuilt only when charSet changes
-let berCount = 0, pozCount = 0, otherCount = 0, totalCount = 0;
-let warehouseCounts = {}, merchantCounts = {};
-let modelAccuracy = 0; // cross-validated accuracy 0-1
-
-/* ══════════════════════════════════════════════
-   CSV PARSING
-══════════════════════════════════════════════ */
-function parseCsv(text) {
-  const result = {};
-  const lines = text.replace(/\r\n/g,"\n").replace(/\r/g,"\n").split("\n");
-  let start = 0;
-  if (lines[0] && /trackingid|tracking_id|id/i.test(lines[0])) start = 1;
-  for (let i = start; i < lines.length; i++) {
-    const line = lines[i].trim(); if (!line) continue;
-    const cols = splitCsvLine(line); if (cols.length < 3) continue;
-    const [tid, merchant, warehouse] = cols.map(c => c.trim());
-    if (tid && warehouse) result[tid] = { merchant, warehouse };
-  }
-  return result;
-}
-function splitCsvLine(line) {
-  const cols = []; let cur = "", inQ = false;
-  for (const ch of line) {
-    if (ch === '"') { inQ = !inQ; }
-    else if (ch === ',' && !inQ) { cols.push(cur); cur = ""; }
-    else cur += ch;
-  }
-  cols.push(cur); return cols;
-}
-
-/* ══════════════════════════════════════════════
-   LAYER 1 — PREFIX (extended to 14 chars, frequency-weighted)
-══════════════════════════════════════════════ */
-function learnPatterns(data) {
-  const p = {};
-  for (const [id, {warehouse}] of Object.entries(data))
-    for (let len = 1; len <= Math.min(id.length, 14); len++) {
-      const k = id.slice(0, len);
-      if (!p[k]) p[k] = {};
-      p[k][warehouse] = (p[k][warehouse] || 0) + 1;
-    }
-  return p;
-}
-function predictByPrefix(id) {
-  // Walk longest-first; weight score by prefix length squared (longer = more specific)
-  const scores = {};
-  for (let len = Math.min(id.length, 14); len >= 1; len--) {
-    const b = learnedPatterns[id.slice(0, len)]; if (!b) continue;
-    const tot = Object.values(b).reduce((a, v) => a + v, 0);
-    const w = len * len; // quadratic weight: len-14 prefix >> len-2 prefix
-    for (const [wh, cnt] of Object.entries(b))
-      scores[wh] = (scores[wh] || 0) + (cnt / tot) * w;
-  }
-  const t = topEntry(scores); if (!t) return {warehouse:null, confidence:0};
-  const tot = Object.values(scores).reduce((a, v) => a + v, 0);
-  return {warehouse: t.key, confidence: Math.min(t.count / tot, 1)};
-}
-
-/* ══════════════════════════════════════════════
-   LAYER 2 — POSITIONAL N-GRAM (position-aware, n=2..5)
-   Key insight: "DE" at position 0 means something completely different
-   from "DE" at position 10. We encode both.
-══════════════════════════════════════════════ */
-function buildNGramStats(data) {
-  nGramStats = {};
-  positionalStats = {};
-  for (const [id, {warehouse}] of Object.entries(data)) {
-    // global n-grams (position-agnostic)
-    for (let n = 2; n <= 5; n++)
-      for (let i = 0; i <= id.length - n; i++) {
-        const g = id.slice(i, i + n);
-        if (!nGramStats[g]) nGramStats[g] = {};
-        nGramStats[g][warehouse] = (nGramStats[g][warehouse] || 0) + 1;
-      }
-    // positional bigrams: "pos:0:DE", "pos:1:E1" etc.
-    for (let i = 0; i < Math.min(id.length - 1, 12); i++) {
-      const key = `${i}:${id.slice(i, i+2)}`;
-      if (!positionalStats[key]) positionalStats[key] = {};
-      positionalStats[key][warehouse] = (positionalStats[key][warehouse] || 0) + 1;
-    }
-  }
-}
-function predictByNGram(id) {
-  const s = {};
-  // Global n-grams weighted by n^2 (longer grams more discriminative)
-  for (let n = 2; n <= 5; n++)
-    for (let i = 0; i <= id.length - n; i++) {
-      const b = nGramStats[id.slice(i, i + n)]; if (!b) continue;
-      const tot = Object.values(b).reduce((a, v) => a + v, 0);
-      const w = n * n;
-      for (const [wh, c] of Object.entries(b))
-        s[wh] = (s[wh] || 0) + (c / tot) * w;
-    }
-  // Positional bigrams — high weight (3x) since position is very discriminative
-  for (let i = 0; i < Math.min(id.length - 1, 12); i++) {
-    const b = positionalStats[`${i}:${id.slice(i, i+2)}`]; if (!b) continue;
-    const tot = Object.values(b).reduce((a, v) => a + v, 0);
-    for (const [wh, c] of Object.entries(b))
-      s[wh] = (s[wh] || 0) + (c / tot) * 12;
-  }
-  const t = topEntry(s); if (!t) return {warehouse:null, confidence:0};
-  const tot = Object.values(s).reduce((a, v) => a + v, 0);
-  return {warehouse: t.key, confidence: Math.min(t.count / tot, 1)};
-}
-
-/* ══════════════════════════════════════════════
-   LAYER 3 — SUFFIX PATTERNS (2, 3, 4 chars from end)
-   Tracking IDs often encode origin country/carrier in suffix.
-══════════════════════════════════════════════ */
-function buildMarkovStats(data) {
-  markovStats = {};
-  suffixStats  = {};
-  for (const [id, {warehouse}] of Object.entries(data)) {
-    // suffix lengths 2, 3, 4
-    for (let slen = 2; slen <= Math.min(id.length, 4); slen++) {
-      const s = `s${slen}:${id.slice(-slen)}`;
-      if (!markovStats[s]) markovStats[s] = {};
-      markovStats[s][warehouse] = (markovStats[s][warehouse] || 0) + 1;
-    }
-  }
-}
-function predictByMarkov(id) {
-  const scores = {};
-  for (let slen = 2; slen <= Math.min(id.length, 4); slen++) {
-    const b = markovStats[`s${slen}:${id.slice(-slen)}`]; if (!b) continue;
-    const tot = Object.values(b).reduce((a, v) => a + v, 0);
-    const w = slen * slen;
-    for (const [wh, c] of Object.entries(b))
-      scores[wh] = (scores[wh] || 0) + (c / tot) * w;
-  }
-  const t = topEntry(scores); if (!t) return {warehouse:null, confidence:0};
-  const tot = Object.values(scores).reduce((a, v) => a + v, 0);
-  return {warehouse: t.key, confidence: Math.min(t.count / tot, 1)};
-}
-
-/* ══════════════════════════════════════════════
-   LAYER 4 — LENGTH + MERCHANT LOOKUP
-   Merchant name is a very strong direct signal — if we've seen
-   this merchant before, use the majority warehouse for them.
-══════════════════════════════════════════════ */
-function buildMLStats(data) {
-  lengthStats  = {};
-  merchantStats = {};
-  for (const [id, {warehouse, merchant}] of Object.entries(data)) {
-    const l = id.length;
-    if (!lengthStats[l]) lengthStats[l] = {};
-    lengthStats[l][warehouse] = (lengthStats[l][warehouse] || 0) + 1;
-    if (merchant) {
-      const mk = merchant.toLowerCase().trim();
-      if (!merchantStats[mk]) merchantStats[mk] = {};
-      merchantStats[mk][warehouse] = (merchantStats[mk][warehouse] || 0) + 1;
-    }
-  }
-}
-function predictByLength(id) {
-  const b = lengthStats[id.length]; if (!b) return {warehouse:null, confidence:0};
-  const t = topEntry(b); if (!t) return {warehouse:null, confidence:0};
-  const tot = Object.values(b).reduce((a, v) => a + v, 0);
-  return {warehouse: t.key, confidence: tot > 0 ? t.count / tot : 0};
-}
-function predictByMerchant(id) {
-  const entry = mapping[id];
-  if (!entry || !entry.merchant) return {warehouse:null, confidence:0};
-  const mk = entry.merchant.toLowerCase().trim();
-  const b  = merchantStats[mk]; if (!b) return {warehouse:null, confidence:0};
-  const t  = topEntry(b); if (!t) return {warehouse:null, confidence:0};
-  const tot = Object.values(b).reduce((a, v) => a + v, 0);
-  return {warehouse: t.key, confidence: tot > 0 ? t.count / tot : 0};
-}
-
-/* ══════════════════════════════════════════════
-   LAYER 5 — DEEP LSTM
-   Architecture improvements:
-   - Larger embedding (32-dim) and two stacked LSTM layers (64+32 units)
-   - Spatial dropout on embedding to regularise
-   - Recurrent dropout in LSTM to prevent overfitting
-   - Learning-rate scheduling: starts at 0.005, reduces on plateau
-   - 60 epochs with early stopping (patience=8) on val_loss
-   - 15% validation split to measure generalisation
-   - Char index built once and cached
-══════════════════════════════════════════════ */
-function buildCharSetAndWarehouseIndex(data) {
-  charSet = new Set();
-  const wh = new Set();
-  for (const [id, {warehouse}] of Object.entries(data)) {
-    for (const c of id) charSet.add(c);
-    wh.add(warehouse);
-  }
-  charSet.add("<PAD>"); charSet.add("<UNK>");
-  warehouseIndex = {}; indexWarehouse = {};
-  [...wh].sort().forEach((w, i) => { warehouseIndex[w] = i; indexWarehouse[i] = w; });
-  // Build and cache the char→index map once
-  charIndexCache = {};
-  [...charSet].forEach((c, i) => { charIndexCache[c] = i; });
-}
-
-function encodeId(id) {
-  const pad = charIndexCache["<PAD>"] ?? 0;
-  const unk = charIndexCache["<UNK>"] ?? 1;
-  const enc = new Array(maxSeqLen).fill(pad);
-  const len = Math.min(id.length, maxSeqLen);
-  for (let i = 0; i < len; i++) enc[i] = charIndexCache[id[i]] ?? unk;
-  return enc;
-}
-
-async function trainLstmModel(data) {
-  const cont = document.getElementById("trainingProgressContainer");
-  const bar  = document.getElementById("trainingProgressBar");
-  const lbl  = document.getElementById("trainingProgressLabel");
-  cont.style.display = "block";
-
-  const ids = Object.keys(data);
-  if (ids.length < 5) { cont.style.display = "none"; return; }
-
-  const vSize = charSet.size;
-  const nCls  = Object.keys(warehouseIndex).length;
-
-  // Shuffle ids for better training
-  const shuffled = [...ids].sort(() => Math.random() - 0.5);
-  const valSplit  = Math.max(1, Math.floor(shuffled.length * 0.15));
-  const trainIds  = shuffled.slice(0, shuffled.length - valSplit);
-  const valIds    = shuffled.slice(shuffled.length - valSplit);
-
-  const encodeSet = (set) => ({
-    xs: set.map(id => encodeId(id)),
-    ys: set.map(id => warehouseIndex[data[id].warehouse] ?? 0)
-  });
-
-  const train = encodeSet(trainIds);
-  const val   = encodeSet(valIds);
-
-  const xTrain = tf.tensor2d(train.xs, [train.xs.length, maxSeqLen]);
-  const yTrain = tf.oneHot(tf.tensor1d(train.ys, 'int32'), nCls);
-  const xVal   = tf.tensor2d(val.xs,   [val.xs.length,   maxSeqLen]);
-  const yVal   = tf.oneHot(tf.tensor1d(val.ys,   'int32'), nCls);
-
-  // Build model: embedding → LSTM(64, return_sequences) → LSTM(32) → Dense
-  lstmModel = tf.sequential();
-  lstmModel.add(tf.layers.embedding({
-    inputDim: vSize, outputDim: 32, inputLength: maxSeqLen,
-    embeddingsRegularizer: tf.regularizers.l2({l2: 1e-4})
-  }));
-  lstmModel.add(tf.layers.spatialDropout1d({rate: 0.15}));
-  lstmModel.add(tf.layers.lstm({
-    units: 64, returnSequences: true,
-    recurrentDropout: 0.1, dropout: 0.1,
-    kernelRegularizer: tf.regularizers.l2({l2: 1e-4})
-  }));
-  lstmModel.add(tf.layers.lstm({
-    units: 32, returnSequences: false,
-    recurrentDropout: 0.1, dropout: 0.1
-  }));
-  lstmModel.add(tf.layers.dense({ units: nCls, activation: 'softmax' }));
-
-  lstmModel.compile({
-    optimizer: tf.train.adam(0.005),
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy']
-  });
-
-  const maxEpochs = 60;
-  const patience  = 8;
-  let bestValLoss = Infinity, bestWeights = null, noImprove = 0, done = 0;
-
-  lbl.textContent = "Training deep model…";
-
-  for (let epoch = 0; epoch < maxEpochs; epoch++) {
-    const h = await lstmModel.fit(xTrain, yTrain, {
-      epochs: 1,
-      batchSize: Math.min(64, Math.max(4, Math.floor(trainIds.length / 6))),
-      shuffle: true,
-      validationData: [xVal, yVal],
-      verbose: 0
-    });
-
-    done = epoch + 1;
-    const pct      = Math.round(done / maxEpochs * 100);
-    const trainAcc = (h.history.acc?.[0] ?? h.history.accuracy?.[0] ?? 0);
-    const valAcc   = (h.history.val_acc?.[0] ?? h.history.val_accuracy?.[0] ?? 0);
-    const valLoss  = h.history.val_loss?.[0] ?? Infinity;
-
-    bar.style.width   = pct + "%";
-    bar.textContent   = pct + "%";
-    lbl.textContent   = `Epoch ${done}/${maxEpochs} · train ${(trainAcc*100).toFixed(1)}% · val ${(valAcc*100).toFixed(1)}%`;
-
-    // Save best weights
-    if (valLoss < bestValLoss) {
-      bestValLoss = valLoss;
-      bestWeights = lstmModel.getWeights().map(w => w.clone());
-      modelAccuracy = valAcc;
-      noImprove = 0;
-    } else {
-      noImprove++;
-    }
-
-    // Early stopping
-    if (noImprove >= patience) {
-      lbl.textContent = `Early stop at epoch ${done} · best val ${(modelAccuracy*100).toFixed(1)}%`;
-      break;
-    }
-
-    // Yield to browser between epochs
-    await new Promise(r => setTimeout(r, 0));
-  }
-
-  // Restore best weights
-  if (bestWeights) {
-    lstmModel.setWeights(bestWeights);
-    bestWeights.forEach(t => t.dispose());
-  }
-
-  xTrain.dispose(); yTrain.dispose(); xVal.dispose(); yVal.dispose();
-
-  const accPct = (modelAccuracy * 100).toFixed(1);
-  bar.style.width = "100%"; bar.textContent = "100%";
-  lbl.textContent = `✓ Trained — val accuracy ${accPct}%`;
-
-  // Collapse retrain panel, show ready state
-  document.getElementById("stateRetrain").style.display = "none";
-  document.getElementById("csvFile").value = "";
-  setModelReady(`Trained on ${Object.keys(mapping).length} rows · val accuracy ${accPct}%`);
-  showMessage(`✓ Model trained (${accPct}% accuracy) — ready to predict.`, false);
-
-  document.getElementById("modelStatus").textContent = `Val accuracy ${accPct}% — auto-saving…`;
-  setTimeout(async () => { await saveModel(); cont.style.display = "none"; }, 800);
-}
-
-async function predictByLstm(id) {
-  if (!lstmModel || !Object.keys(warehouseIndex).length) return {warehouse:null, confidence:0};
-  try {
-    const inp  = tf.tensor2d([encodeId(id)], [1, maxSeqLen]);
-    const pred = lstmModel.predict(inp);
-    const probs = await pred.data();
-    inp.dispose(); pred.dispose();
-    let mi = 0, mp = 0;
-    for (let i = 0; i < probs.length; i++) if (probs[i] > mp) { mp = probs[i]; mi = i; }
-    return {warehouse: indexWarehouse[mi] ?? null, confidence: mp};
-  } catch(e) { return {warehouse:null, confidence:0}; }
-}
-
-/* ══════════════════════════════════════════════
-   SAVE / LOAD MODEL
-══════════════════════════════════════════════ */
-async function saveModel() {
-  const s=document.getElementById("modelStatus");
-  s.textContent="Serialising…";
-  try {
-    let lw=null;
-    if (lstmModel) {
-      lw={config:JSON.parse(JSON.stringify(lstmModel.toJSON())),
-          weights:lstmModel.getWeights().map(w=>({shape:w.shape,data:Array.from(w.dataSync())}))};
-    }
-    const bundle={version:1,savedAt:new Date().toISOString(),maxSeqLen,charSet:[...charSet],
-      warehouseIndex,indexWarehouse,learnedPatterns,nGramStats,markovStats,lengthStats,
-      suffixStats,merchantStats,positionalStats,modelAccuracy,lstmWeights:lw};
-    const blob=new Blob([JSON.stringify(bundle)],{type:"application/json"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a"); a.href=url; a.download="warehouse_model.json"; a.click();
-    URL.revokeObjectURL(url);
-    s.textContent="✓ Saved as warehouse_model.json";
-  } catch(err){s.textContent="Save error: "+err.message;}
-}
-async function loadModelFromBundle(bundle) {
-  if (!bundle||bundle.version!==1) throw new Error("Unrecognised model file.");
-  maxSeqLen=bundle.maxSeqLen??20;
-  charSet=new Set(bundle.charSet??[]);
-  warehouseIndex=bundle.warehouseIndex??{};
-  indexWarehouse=bundle.indexWarehouse??{};
-  learnedPatterns=bundle.learnedPatterns??{};
-  nGramStats=bundle.nGramStats??{};
-  markovStats=bundle.markovStats??{};
-  lengthStats=bundle.lengthStats??{};
-  suffixStats=bundle.suffixStats??{};
-  merchantStats=bundle.merchantStats??{};
-  positionalStats=bundle.positionalStats??{};
-  modelAccuracy=bundle.modelAccuracy??0;
-  // Rebuild charIndexCache after loading
-  charIndexCache={};
-  [...charSet].forEach((c,i)=>{ charIndexCache[c]=i; });
-  if (bundle.lstmWeights) {
-    const {config,weights}=bundle.lstmWeights;
-    lstmModel=await tf.models.modelFromJSON(config);
-    const tensors=weights.map(w=>tf.tensor(w.data,w.shape));
-    lstmModel.setWeights(tensors); tensors.forEach(t=>t.dispose());
-  } else lstmModel=null;
-  return bundle.savedAt ? new Date(bundle.savedAt).toLocaleString() : "unknown";
-}
-/* ══════════════════════════════════════════════
-   STATE MACHINE: load → ready → (optionally retrain)
-══════════════════════════════════════════════ */
-function showState(state) {
-  // state: 'load' | 'ready' | 'retrain'
-  document.getElementById("stateLoad").style.display    = state === "load"    ? "block" : "none";
-  document.getElementById("stateReady").style.display   = state === "ready"   ? "block" : "none";
-  document.getElementById("stateRetrain").style.display = state === "retrain" ? "block" : "none";
-}
-
-function setModelReady(info) {
-  document.getElementById("modelStatusReady").textContent = info;
-  document.getElementById("lookupBtn").disabled = false;
-  showState("ready");
-}
-
-// ⚙ button — reveal retrain panel
-document.getElementById("showRetrainBtn").addEventListener("click", () => {
-  document.getElementById("stateRetrain").style.display = "block";
-  // scroll retrain into view smoothly
-  document.getElementById("stateRetrain").scrollIntoView({behavior:"smooth", block:"nearest"});
-});
-
-// ✕ cancel retrain
-document.getElementById("cancelRetrainBtn").addEventListener("click", () => {
-  document.getElementById("stateRetrain").style.display = "none";
-  document.getElementById("csvFile").value = "";
-});
-
-// "Train a new one →" link (from load state)
-document.getElementById("goTrainBtn").addEventListener("click", () => {
-  showState("retrain");
-});
-
-// Save model button
-document.getElementById("saveModelBtn").addEventListener("click", saveModel);
-
-// Load model file
-document.getElementById("modelFile").addEventListener("change", async function(){
-  const file = this.files[0]; if (!file) return;
-  document.getElementById("modelStatus").textContent = "Reading model file…";
-  const r = new FileReader();
-  r.onload = async (e) => {
-    try {
-      const when = await loadModelFromBundle(JSON.parse(e.target.result));
-      setModelReady(`Loaded from file · saved ${when}`);
-      showMessage(`✓ Model ready (saved ${when}) — start scanning.`, false);
-    } catch(err) {
-      showMessage("Failed to load model: " + err.message, true);
-      showState("load");
-    }
-  };
-  r.onerror = () => { showMessage("Could not read file.", true); showState("load"); };
-  r.readAsText(file);
-});
-
-/* ══════════════════════════════════════════════
-   HYBRID ENGINE
-   Weight rationale:
-   - Exact match: infallible when present (short-circuit)
-   - Merchant: very strong direct signal (if known merchant)
-   - Prefix (long): highly discriminative for structured IDs
-   - Positional N-gram: captures structural patterns
-   - LSTM: generalises to unseen IDs; weight scales with val accuracy
-   - Suffix/Markov: carrier suffix patterns
-   - Length: weak signal, low weight
-══════════════════════════════════════════════ */
-async function hybridPredict(id) {
-  // LSTM weight scales with its measured validation accuracy
-  const lstmW = 0.5 + modelAccuracy * 0.8; // range 0.5–1.3
-
-  const layers = [
-    {name:"Exact match", weight:1.0,    fn:()=>predictExact(id)},
-    {name:"Merchant",    weight:1.1,    fn:()=>predictByMerchant(id)},
-    {name:"Prefix",      weight:0.9,    fn:()=>predictByPrefix(id)},
-    {name:"N-Gram",      weight:0.75,   fn:()=>predictByNGram(id)},
-    {name:"Suffix",      weight:0.55,   fn:()=>predictByMarkov(id)},
-    {name:"LSTM",        weight:lstmW,  fn:()=>predictByLstm(id)},
-    {name:"ID length",   weight:0.15,   fn:()=>predictByLength(id)},
-  ];
-
-  const scores = {}, details = [];
-  for (const l of layers) {
-    const res = await l.fn();
-    details.push({...l, result:res});
-    if (res.warehouse && res.confidence > 0)
-      scores[res.warehouse] = (scores[res.warehouse] || 0) + res.confidence * l.weight;
-  }
-
-  const top = topEntry(scores);
-  if (!top) return {warehouse:"Unknown", confidence:0, layerDetails:details};
-  const tot = Object.values(scores).reduce((a, v) => a + v, 0);
-  const conf = Math.min(top.count / tot, 1);
-
-  return {warehouse:top.key, confidence:conf, layerDetails:details};
-}
-function predictExact(id) {
-  return mapping[id]
-    ? {warehouse: mapping[id].warehouse, confidence:1.0}
-    : {warehouse:null, confidence:0};
-}
-
-/* ══════════════════════════════════════════════
-   UTILITY
-══════════════════════════════════════════════ */
-function topEntry(obj) {
-  if (!obj||!Object.keys(obj).length) return null;
-  let best=null;
-  for (const [key,count] of Object.entries(obj)) if (!best||count>best.count) best={key,count};
-  return best;
-}
-function getMerchantForId(id) { return (mapping[id]&&mapping[id].merchant)||"Unknown"; }
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function whClass(wh) {
-  const u=wh.toUpperCase();
-  if (u.includes("BER3")) return "ber";
-  if (u.includes("POZ"))  return "poz";
-  if (wh==="Unknown")     return "unknown";
-  return "other";
-}
-function confMeta(c) {
-  if (c>=0.8)  return {cls:"conf-high",    label:"HIGH"};
-  if (c>=0.55) return {cls:"conf-mid",     label:"MED"};
-  if (c>=0.35) return {cls:"conf-low",     label:"LOW"};
-  return              {cls:"conf-verylow", label:"VERY LOW"};
-}
-
-/* ══════════════════════════════════════════════
-   COUNTERS & SUMMARIES
-══════════════════════════════════════════════ */
-function updateCounters(warehouse, merchant) {
-  totalCount++;
-  const u=warehouse.toUpperCase();
-  if (u.includes("BER3")) berCount++;
-  else if (u.includes("POZ")) pozCount++;
-  else otherCount++;
-  warehouseCounts[warehouse]=(warehouseCounts[warehouse]||0)+1;
-  merchantCounts[merchant]=(merchantCounts[merchant]||0)+1;
-  document.getElementById("berCount").textContent=berCount;
-  document.getElementById("pozCount").textContent=pozCount;
-  document.getElementById("otherCount").textContent=otherCount;
-  document.getElementById("totalCount").textContent=totalCount;
-  renderWarehouseSummary(); renderMerchantSummary();
-}
-function renderWarehouseSummary() {
-  const el=document.getElementById("warehouseSummary");
-  if (!totalCount){el.innerHTML='<div style="font-size:13px;color:var(--subtext)">No scans yet.</div>';return;}
-  const entries=Object.entries(warehouseCounts).sort((a,b)=>b[1]-a[1]);
-  const mx=entries[0][1];
-  el.innerHTML=entries.map(([wh,cnt])=>{
-    const pct=mx>0?(cnt/mx*100).toFixed(0):0;
-    return `<div class="warehouse-row"><div class="warehouse-label">${escHtml(wh)}</div><div class="warehouse-bar"><div class="warehouse-bar-fill" style="width:${pct}%">${pct>20?cnt:''}</div></div><div class="warehouse-count">${cnt}</div></div>`;
-  }).join("");
-}
-function renderMerchantSummary() {
-  const el=document.getElementById("merchantSummaryBody");
-  if (!totalCount){el.innerHTML='<div style="font-size:13px;color:var(--subtext)">No scans yet.</div>';return;}
-  el.innerHTML=Object.entries(merchantCounts).sort((a,b)=>b[1]-a[1]).map(([m,cnt])=>{
-    const pct=totalCount>0?(cnt/totalCount*100).toFixed(1):"0.0";
-    return `<div class="merchant-row"><div>${escHtml(m)}</div><div>${cnt}</div><div>${pct}%</div></div>`;
-  }).join("");
-}
-function resetSession() {
-  berCount=pozCount=otherCount=totalCount=0;
-  warehouseCounts={}; merchantCounts={};
-  ["berCount","pozCount","otherCount","totalCount"].forEach(id=>document.getElementById(id).textContent=0);
-  renderWarehouseSummary(); renderMerchantSummary();
-  const r=document.getElementById("result"); r.style.display="none"; r.className="result";
-  hideMobOverlay();
-}
-
-/* ══════════════════════════════════════════════
-   RESULT DISPLAY — DESKTOP
-══════════════════════════════════════════════ */
-function showDesktopResult(warehouse, confidence, layerDetails) {
-  const el=document.getElementById("result");
-  el.style.display="block";
-  const wc=whClass(warehouse), cm=confMeta(confidence), pct=Math.round(confidence*100);
-  el.className="result"+(wc&&wc!=="other"?" "+wc:"");
-
-  const layerLines=(layerDetails||[]).filter(l=>l.result.warehouse)
-    .map(l=>`<span>${escHtml(l.name)}</span>: ${escHtml(l.result.warehouse)} (${Math.round(l.result.confidence*100)}%)`).join("<br>");
-
-  const icons={"ber":"🟢","poz":"🔴","unknown":"🟡","other":"🔵"};
-  const icon=icons[wc]||"🔵";
-
-  el.innerHTML=`
-    <div class="result-wh-block">
-      <div class="result-wh-icon">${icon}</div>
-      <div class="result-wh-name ${wc}">${escHtml(warehouse)}</div>
+<div class="section">
+  <div class="section-title">Pattern 1 — ID format types</div>
+  <div class="pattern-row">
+    <div class="pattern-badge">1</div>
+    <div class="pattern-body">
+      <div class="pattern-title">20-digit numeric (DHL/GLS standard)</div>
+      <div class="pattern-desc">Largest group — 1,704 records (67%). All start with <span class="example">0034</span>. The carrier/sort code at <strong>positions 8–11</strong> is the most discriminative single feature: certain codes are 100% tied to one warehouse.</div>
+      <span class="pill pill-ber">pos8-11: 7577 → BER3 96%</span>
+      <span class="pill pill-ber">pos8-11: 5249 → BER3 100%</span>
+      <span class="pill pill-poz1">pos8-11: 0734 → POZ 100%</span>
+      <span class="pill pill-poz1">pos8-11: 5320 → POZ 100%</span>
     </div>
-    <hr class="result-divider">
-    <div class="confidence-row">
-      <div class="confidence-badge ${cm.cls}">${cm.label} CONFIDENCE</div>
-      <div class="confidence-bar-container"><div class="confidence-bar-fill" style="width:${pct}%">${pct>15?pct+"%":""}</div></div>
-      <div class="confidence-pct">${pct}%</div>
+  </div>
+
+  <div class="pattern-row">
+    <div class="pattern-badge">2</div>
+    <div class="pattern-body">
+      <div class="pattern-title">11-digit numeric (GLS/national carrier)</div>
+      <div class="pattern-desc">279 records. Prefix <span class="example">115</span> maps almost entirely to BER3. Prefix <span class="example">121</span> splits across all three. Prefix <span class="example">1155</span> is pure BER3.</div>
+      <span class="pill pill-ber">115xxx → BER3 ~90%</span>
+      <span class="pill pill-ber">1155xxx → BER3 100%</span>
     </div>
-    ${layerLines?`<div class="layer-details">${layerLines}</div>`:""}`;
-}
+  </div>
 
-/* ══════════════════════════════════════════════
-   RESULT DISPLAY — MOBILE OVERLAY
-══════════════════════════════════════════════ */
-let mobTimer=null;
+  <div class="pattern-row">
+    <div class="pattern-badge">3</div>
+    <div class="pattern-body">
+      <div class="pattern-title">International format — [2 letters][digits][DE]</div>
+      <div class="pattern-desc">101 records, all end in <span class="example">DE</span> (German destination). The 2-letter carrier prefix is highly predictive.</div>
+      <span class="pill pill-ber">LE, CD, CB, UE → BER3</span>
+      <span class="pill pill-poz2">CA, UF → POZ</span>
+    </div>
+  </div>
 
-function showMobOverlay(warehouse, confidence) {
-  const overlay=document.getElementById("mobOverlay");
-  const nameEl=document.getElementById("mobWhName");
-  const badgeEl=document.getElementById("mobConfBadge");
-  const barEl=document.getElementById("mobConfBar");
-  const pctEl=document.getElementById("mobConfPct");
-  const sweep=overlay.querySelector(".sweep");
+  <div class="pattern-row">
+    <div class="pattern-badge">4</div>
+    <div class="pattern-body">
+      <div class="pattern-title">(Y) internal system codes</div>
+      <div class="pattern-desc">151 records with various subtypes. The subtype after (Y) is the key signal.</div>
+      <span class="pill pill-ber">(Y)#[ALPHA] → BER3 100%</span>
+      <span class="pill pill-ber">(Y)[ALPHA]... → BER3 ~85%</span>
+      <span class="pill pill-poz1">(Y)#SRDE... → POZ</span>
+      <span class="pill pill-poz2">(Y)#[NUM] → POZ2 ~52%</span>
+    </div>
+  </div>
+</div>
 
-  const wc=whClass(warehouse), cm=confMeta(confidence), pct=Math.round(confidence*100);
+<hr class="divider">
 
-  // Reset transition so timer ring restarts cleanly
-  sweep.style.transition="none";
-  sweep.style.strokeDashoffset="94.2";
-  overlay.className="mob-overlay"; // remove .show and colour classes first
+<div class="section">
+  <div class="section-title">Pattern 2 — feature signal strength</div>
+  <div class="signal-row"><div class="signal-label">Merchant name</div><div class="bar-track"><div class="bar-fill bar-green" style="width:92%"></div></div><div class="signal-pct">92%</div></div>
+  <div class="signal-row"><div class="signal-label">ID prefix (12–14 chars)</div><div class="bar-track"><div class="bar-fill bar-green" style="width:88%"></div></div><div class="signal-pct">88%</div></div>
+  <div class="signal-row"><div class="signal-label">Positions 8–11 (20-digit)</div><div class="bar-track"><div class="bar-fill bar-green" style="width:85%"></div></div><div class="signal-pct">85%</div></div>
+  <div class="signal-row"><div class="signal-label">Positional bigrams</div><div class="bar-track"><div class="bar-fill bar-blue" style="width:75%"></div></div><div class="signal-pct">75%</div></div>
+  <div class="signal-row"><div class="signal-label">ID format type</div><div class="bar-track"><div class="bar-fill bar-blue" style="width:68%"></div></div><div class="signal-pct">68%</div></div>
+  <div class="signal-row"><div class="signal-label">Suffix (last 2–4 chars)</div><div class="bar-track"><div class="bar-fill bar-amber" style="width:52%"></div></div><div class="signal-pct">52%</div></div>
+  <div class="signal-row"><div class="signal-label">ID length</div><div class="bar-track"><div class="bar-fill bar-amber" style="width:40%"></div></div><div class="signal-pct">40%</div></div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin-top:.5rem;">162 of 190 merchants (85%) always map to the same warehouse — merchant alone covers 68% of rows with near-perfect accuracy.</p>
+</div>
 
-  nameEl.textContent=warehouse;
-  nameEl.className="mob-wh-name "+wc;
-  badgeEl.textContent=cm.label;
-  badgeEl.className="mob-conf-badge "+cm.cls;
-  pctEl.textContent=pct+"%";
-  barEl.style.width="0%";
+<hr class="divider">
 
-  // Force reflow then animate in
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    overlay.className="mob-overlay show"+(wc&&wc!=="other"?" "+wc:"");
-    barEl.style.width=pct+"%";
-    sweep.style.transition="stroke-dashoffset 2.4s linear";
-    sweep.style.strokeDashoffset="0";
-  }));
+<div class="section">
+  <div class="section-title">Pattern 3 — the 28 ambiguous merchants (POZ1 vs POZ2)</div>
+  <p style="font-size:12px;color:var(--color-text-secondary);margin:-.25rem 0 .75rem;">These merchants split exactly between POZ1 and POZ2 — the tracking ID itself must decide.</p>
+  <div style="max-height:160px;overflow-y:auto;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:.5rem .75rem;">
+    <div class="ambig-row"><div class="ambig-name">SHEKO</div><span class="pill pill-poz1">POZ1 × 24</span><span class="pill pill-poz2">POZ2 × 24</span></div>
+    <div class="ambig-row"><div class="ambig-name">mybacs</div><span class="pill pill-poz1">POZ1 × 26</span><span class="pill pill-poz2">POZ2 × 26</span></div>
+    <div class="ambig-row"><div class="ambig-name">Edubini</div><span class="pill pill-ber">BER3 × 15</span><span class="pill pill-poz1">POZ1 × 21</span><span class="pill pill-poz2">POZ2 × 21</span></div>
+    <div class="ambig-row"><div class="ambig-name">Ipanema Beauty</div><span class="pill pill-poz1">POZ1 × 21</span><span class="pill pill-poz2">POZ2 × 21</span></div>
+    <div class="ambig-row"><div class="ambig-name">Sophie Rosenburg</div><span class="pill pill-poz1">POZ1 × 18</span><span class="pill pill-poz2">POZ2 × 18</span></div>
+    <div class="ambig-row"><div class="ambig-name">Jacks Beauty Line</div><span class="pill pill-poz1">POZ1 × 16</span><span class="pill pill-poz2">POZ2 × 16</span></div>
+    <div class="ambig-row"><div class="ambig-name">Salted GmbH</div><span class="pill pill-poz1">POZ1 × 16</span><span class="pill pill-poz2">POZ2 × 16</span></div>
+    <div class="ambig-row"><div class="ambig-name">litelok</div><span class="pill pill-poz1">POZ1 × 16</span><span class="pill pill-poz2">POZ2 × 16</span></div>
+    <div class="ambig-row"><div class="ambig-name">+ 20 more merchants</div><span style="font-size:11px;color:var(--color-text-secondary)">similar 50/50 POZ1 vs POZ2 split</span></div>
+  </div>
+</div>
 
-  if (mobTimer) clearTimeout(mobTimer);
-  mobTimer=setTimeout(()=>{
-    hideMobOverlay();
-    document.getElementById("returnIdInput").value="";
-    document.getElementById("returnIdInput").focus();
-  }, 2600);
-}
+<hr class="divider">
 
-function hideMobOverlay() {
-  document.getElementById("mobOverlay").classList.remove("show");
-}
+<div class="section">
+  <div class="section-title">Recommended model architecture</div>
 
-function showMessage(msg, isError) {
-  const el=document.getElementById("result");
-  el.style.display="block";
-  el.className="result"+(isError?" error":"");
-  el.textContent=msg;
-}
+  <div class="model-card">
+    <div class="model-name">Rule engine (deterministic layer) <span class="rec-badge">use first</span></div>
+    <div class="model-desc">Covers ~65% of cases with near-100% accuracy using hard rules: exact ID prefix match, positions 8–11 for 20-digit IDs, carrier prefix for INTL format, (Y)# subtype. No training required, fully interpretable, zero false confidence.</div>
+    <div class="model-acc acc-high">~98% accuracy on cases it handles</div>
+  </div>
 
-/* ══════════════════════════════════════════════
-   CSV LOADING
-══════════════════════════════════════════════ */
-document.getElementById("csvFile").addEventListener("change", function(){
-  const file = this.files[0]; if (!file) return;
-  showMessage("Loading CSV…", false);
-  document.getElementById("lookupBtn").disabled = true;
-  const r = new FileReader();
-  r.onload = async (e) => {
-    try {
-      mapping = parseCsv(e.target.result);
-      const count = Object.keys(mapping).length;
-      if (!count) { showMessage("No valid rows. Check format: TrackingID, Merchant, Warehouse", true); return; }
-      learnedPatterns = learnPatterns(mapping);
-      buildNGramStats(mapping); buildMarkovStats(mapping); buildMLStats(mapping);
-      buildCharSetAndWarehouseIndex(mapping);
-      showMessage(`Loaded ${count} rows — training model…`, false);
-      await trainLstmModel(mapping); // trainLstmModel calls setModelReady internally
-    } catch(err) { showMessage("Error: " + err.message, true); }
-  };
-  r.onerror = () => showMessage("Could not read file.", true);
-  r.readAsText(file);
-});
+  <div class="model-card">
+    <div class="model-name">Merchant lookup table (direct signal) <span class="rec-badge">use second</span></div>
+    <div class="model-desc">For the 162 pure merchants: always correct. For the 28 ambiguous merchants: pass to the ML layer. Merchant covers 68% of all rows.</div>
+    <div class="model-acc acc-high">~100% on pure merchants</div>
+  </div>
 
-/* ══════════════════════════════════════════════
-   PREDICTION
-══════════════════════════════════════════════ */
-async function runPrediction() {
-  const id=document.getElementById("returnIdInput").value.trim();
-  if (!id) return;
-  const btn=document.getElementById("lookupBtn");
-  if (btn) {btn.disabled=true; btn.textContent="Predicting…";}
-  try {
-    const merchant=getMerchantForId(id);
-    const result=await hybridPredict(id);
-    const wh=result.warehouse||"Unknown", conf=result.confidence||0;
-    updateCounters(wh, merchant);
-    if (document.body.classList.contains("mobile")) {
-      showMobOverlay(wh, conf);
-    } else {
-      showDesktopResult(wh, conf, result.layerDetails);
-    }
-  } catch(err){
-    if (!document.body.classList.contains("mobile")) showMessage("Error: "+err.message,true);
-  }
-  if (btn) {btn.disabled=false; btn.textContent="Predict Warehouse";}
-}
-
-document.getElementById("lookupBtn").addEventListener("click", runPrediction);
-
-document.getElementById("returnIdInput").addEventListener("keydown", (e)=>{
-  if (e.key!=="Enter") return;
-  if (document.body.classList.contains("mobile")) { runPrediction(); return; }
-  if (!document.getElementById("lookupBtn").disabled) runPrediction();
-});
-</script>
-</body>
-</html>
+  <div class="model-card">
+    <div class="model-name">Gradient Boosted Trees — XGBoost or LightGBM <span class="rec-badge">best ML choice</span></div>
+    <div class="model-desc">For the remaining ambiguous cases (~35%). Features: positional n-grams (bigrams at positions 0–12), prefix hash, suffix hash, ID length, format type, character at each position up to 14. GBT handles the mixed numeric/categorical nature of this data extremely well — better than LSTM for structured ID patterns. Fast to train, interpretable feature importances, no GPU needed.</div>
+    <div class="model-acc acc-mid">Expected ~88–93% on ambiguous
