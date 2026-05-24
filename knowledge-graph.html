@@ -238,6 +238,73 @@ body {
   letter-spacing: 0.08em;
 }
 
+/* ── FLOW DIAGRAM ── */
+.flow-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.flow-item {
+  flex: 1;
+  min-width: 150px;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--accent-primary);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  text-align: center;
+  transition: all var(--transition-norm);
+  position: relative;
+  z-index: 2;
+}
+
+.flow-item:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.flow-item-number {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent-primary);
+  margin-bottom: 0.5rem;
+}
+
+.flow-item-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.flow-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 3px;
+  background: var(--accent-primary);
+  position: relative;
+  margin: 0 -1rem;
+}
+
+.flow-arrow::after {
+  content: '→';
+  position: absolute;
+  right: -15px;
+  top: -11px;
+  font-size: 20px;
+  color: var(--accent-primary);
+  animation: slideRight 2s infinite;
+}
+
+@keyframes slideRight {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(8px); }
+}
+
 /* ── LAYER BLOCKS ── */
 .layers-grid {
   display: grid;
@@ -724,6 +791,23 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .flow-diagram {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .flow-arrow {
+    width: 3px;
+    height: 40px;
+    margin: -1rem 0;
+  }
+
+  .flow-arrow::after {
+    content: '↓';
+    right: -11px;
+    top: -15px;
+  }
+
   .topbar {
     padding: 0 1rem;
   }
@@ -774,7 +858,7 @@ body {
   <div class="section">
     <div class="section-header">📋 Complete Project Overview</div>
     <div class="section-description">
-      ReturnRack is an AI-powered warehouse returns routing application. It uses a cascaded 4-layer prediction model to classify returned parcels to their appropriate warehouse. The system combines rule-based logic, Bayesian probability, machine learning, and statistical models.
+      ReturnRack is an AI-powered warehouse returns routing application. It uses a cascaded 4-layer prediction model to classify returned parcels to their appropriate warehouse. The system combines rule-based heuristics, Bayesian inference, gradient boosting, and statistical encoding.
     </div>
     <div class="overview-grid">
       <div class="overview-card">
@@ -796,6 +880,40 @@ body {
         <div class="card-title">🔐 Privacy</div>
         <div class="card-stat">∞</div>
         <div class="card-label">Browser-only</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREDICTION FLOW -->
+  <div class="section">
+    <div class="section-header">🔄 Cascading Prediction Flow</div>
+    <div class="section-description">
+      Data flows through 4 prediction layers in sequence. Early layers handle simple patterns; later layers handle complex cases.
+    </div>
+    <div class="flow-diagram">
+      <div class="flow-item">
+        <div class="flow-item-number">1️⃣</div>
+        <div class="flow-item-name">Input: Tracking ID</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-item">
+        <div class="flow-item-number">⚡</div>
+        <div class="flow-item-name">Rule Engine</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-item">
+        <div class="flow-item-number">🏪</div>
+        <div class="flow-item-name">Merchant Lookup</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-item">
+        <div class="flow-item-number">🌳</div>
+        <div class="flow-item-name">ML Ensemble</div>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-item">
+        <div class="flow-item-number">📊</div>
+        <div class="flow-item-name">Output: Warehouse</div>
       </div>
     </div>
   </div>
@@ -1004,47 +1122,312 @@ body {
     </div>
   </div>
 
+  <!-- KEY FUNCTIONS -->
+  <div class="section">
+    <div class="section-header">⚙️ Key Functions</div>
+    <div class="section-description">
+      Critical functions that drive the prediction pipeline. Each function is responsible for a specific task in the data processing and model execution flow.
+    </div>
+    <div class="functions-grid">
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🎯</div>
+          <div class="function-name">predict()</div>
+        </div>
+        <div class="function-signature">predict(trackingId, merchantName) → {warehouse, confidence, layer}</div>
+        <div class="attributes-section">
+          <div class="attributes-label">Parameters</div>
+          <div class="attribute-row">
+            <div class="attribute-key">trackingId</div>
+            <div class="attribute-value">string — Parcel tracking identifier</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">merchantName</div>
+            <div class="attribute-value">string — Shipping merchant/carrier</div>
+          </div>
+          <div class="attributes-label" style="margin-top: 0.75rem;">Returns</div>
+          <div class="attribute-row">
+            <div class="attribute-key">warehouse</div>
+            <div class="attribute-value">string — Predicted warehouse code</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">confidence</div>
+            <div class="attribute-value">number — Confidence score (0-1)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🏗️</div>
+          <div class="function-name">trainModel()</div>
+        </div>
+        <div class="function-signature">trainModel(csvData) → {accuracy, stats, model}</div>
+        <div class="attributes-section">
+          <div class="attributes-label">Parameters</div>
+          <div class="attribute-row">
+            <div class="attribute-key">csvData</div>
+            <div class="attribute-value">array — Training records with IDs & warehouses</div>
+          </div>
+          <div class="attributes-label" style="margin-top: 0.75rem;">Process</div>
+          <div class="attribute-row">
+            <div class="attribute-key">Step 1</div>
+            <div class="attribute-value">Extract features from tracking IDs</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">Step 2</div>
+            <div class="attribute-value">Build rules, merchants, ensemble trees</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">Step 3</div>
+            <div class="attribute-value">Validate with cross-entropy loss</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">📊</div>
+          <div class="function-name">extractFeatures()</div>
+        </div>
+        <div class="function-signature">extractFeatures(trackingId) → {nGrams, substrings, markers}</div>
+        <div class="attributes-section">
+          <div class="attributes-label">Features Generated</div>
+          <div class="attribute-row">
+            <div class="attribute-key">n-grams</div>
+            <div class="attribute-value">2-3 character substrings</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">positional</div>
+            <div class="attribute-value">Prefix/suffix/middle patterns</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">length</div>
+            <div class="attribute-value">Total ID length & segments</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">markov</div>
+            <div class="attribute-value">Character transition probabilities</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPONENTS -->
+  <div class="section">
+    <div class="section-header">🎛️ UI Components</div>
+    <div class="section-description">
+      Reusable UI components that compose the ReturnRack dashboard. Each component is self-contained and responsive.
+    </div>
+    <div class="components-grid">
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">🔍</div>
+          <div class="component-name">Search Input</div>
+        </div>
+        <div class="component-description">Primary input field for tracking IDs. Supports real-time validation and merchant dropdown selection. Triggers predictions on submit.</div>
+      </div>
+
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">📈</div>
+          <div class="component-name">Results Panel</div>
+        </div>
+        <div class="component-description">Displays prediction output with warehouse, confidence, and breakdown by layer. Shows which layer made the decision.</div>
+      </div>
+
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">📋</div>
+          <div class="component-name">Recent Scans Table</div>
+        </div>
+        <div class="component-description">History table showing last 50 scans. Sortable by timestamp, ID, warehouse. Click to re-predict or export.</div>
+      </div>
+
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">⚙️</div>
+          <div class="component-name">Settings Panel</div>
+        </div>
+        <div class="component-description">Configure confidence thresholds, enable/disable layers, choose between fast/accurate modes. Persist to localStorage.</div>
+      </div>
+
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">🏪</div>
+          <div class="component-name">Merchant List</div>
+        </div>
+        <div class="component-description">Sidebar showing top merchants by volume. Hover to see warehouse breakdown. Click to filter recent scans.</div>
+      </div>
+
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">📂</div>
+          <div class="component-name">Data Importer</div>
+        </div>
+        <div class="component-description">CSV uploader with validation. Shows preview before training. Supports incremental and full retraining modes.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA STRUCTURES -->
+  <div class="section">
+    <div class="section-header">💾 Core Data Structures</div>
+    <div class="section-description">
+      Internal data structures that power the prediction engine. All data persists to IndexedDB for offline capability.
+    </div>
+    <div class="functions-grid">
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">📋</div>
+          <div class="function-name">ruleStats</div>
+        </div>
+        <div class="function-signature">Object → {[pattern]: warehouse, confidence}</div>
+        <div class="attributes-section">
+          <div class="attributes-label">Example</div>
+          <div class="attribute-row">
+            <div class="attribute-key">DHL</div>
+            <div class="attribute-value">{warehouse: 'EU-CENTRAL', conf: 0.98}</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">GLS</div>
+            <div class="attribute-value">{warehouse: 'EU-WEST', conf: 0.95}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🏪</div>
+          <div class="function-name">merchantStats</div>
+        </div>
+        <div class="function-signature">Object → {[merchant]: {warehouses: {}, confidence}}</div>
+        <div class="attributes-section">
+          <div class="attributes-label">Structure</div>
+          <div class="attribute-row">
+            <div class="attribute-key">Amazon</div>
+            <div class="attribute-value">counts for each warehouse destination</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">Ebay</div>
+            <div class="attribute-value">probability distribution per warehouse</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🌳</div>
+          <div class="function-name">treeEnsemble</div>
+        </div>
+        <div class="function-signature">Array → [{depth, split, leaves, weights}]</div>
+        <div class="attributes-section">
+          <div class="attributes-label">Details</div>
+          <div class="attribute-row">
+            <div class="attribute-key">trees</div>
+            <div class="attribute-value">30-50 decision trees</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">depth</div>
+            <div class="attribute-value">Max 4-6 levels per tree</div>
+          </div>
+          <div class="attribute-row">
+            <div class="attribute-key">voting</div>
+            <div class="attribute-value">Majority vote + confidence</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ── FLOATING BUTTONS ── -->
 <div class="fab-group">
-  <button class="fab" id="themeFabFloat" title="Toggle theme">🌙</button>
-  <button class="fab" id="scrollTopBtnFloat" class="hidden" title="Scroll to top">↑</button>
+  <button class="fab" id="exportBtn" title="Export Model">💾</button>
 </div>
 
 <script>
-// Theme toggle
-function toggleTheme() {
-  document.body.classList.toggle('light');
-  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
-}
+// ── THEME TOGGLE ──
+const themeFab = document.getElementById('themeFab');
+const body = document.body;
 
-document.querySelectorAll('[id*="theme"]').forEach(btn => {
-  btn.addEventListener('click', toggleTheme);
-  btn.style.cursor = 'pointer';
+themeFab.addEventListener('click', () => {
+  body.classList.toggle('light');
+  const isDark = !body.classList.contains('light');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  themeFab.textContent = isDark ? '🌙' : '☀️';
 });
 
-// Scroll to top
-function scrollToTop() {
-  document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' });
+// Restore theme preference
+const savedTheme = localStorage.getItem('theme') || 'dark';
+if (savedTheme === 'light') {
+  body.classList.add('light');
+  themeFab.textContent = '☀️';
 }
 
-const scrollBtn = document.getElementById('scrollTopBtnFloat');
+// ── SCROLL TO TOP ──
 const scrollTopBtn = document.getElementById('scrollTopBtn');
+const mainContent = document.getElementById('mainContent');
 
-[scrollBtn, scrollTopBtn].forEach(btn => {
-  btn.addEventListener('click', scrollToTop);
-  btn.style.cursor = 'pointer';
+scrollTopBtn.addEventListener('click', () => {
+  mainContent.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-document.querySelector('.content').addEventListener('scroll', (e) => {
-  scrollBtn.classList.toggle('hidden', e.target.scrollTop < 300);
+// Show/hide button based on scroll position
+mainContent.addEventListener('scroll', () => {
+  if (mainContent.scrollTop > 300) {
+    scrollTopBtn.style.opacity = '1';
+    scrollTopBtn.style.pointerEvents = 'auto';
+  } else {
+    scrollTopBtn.style.opacity = '0.5';
+    scrollTopBtn.style.pointerEvents = 'none';
+  }
 });
 
-// Load theme preference
-if (localStorage.getItem('theme') === 'light') {
-  document.body.classList.add('light');
-}
+// ── EXPORT BUTTON ──
+const exportBtn = document.getElementById('exportBtn');
+exportBtn.addEventListener('click', () => {
+  const data = {
+    timestamp: new Date().toISOString(),
+    name: 'ReturnRack Knowledge Graph Export',
+    version: '1.0.0',
+    content: document.documentElement.outerHTML
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `returnrack-graph-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ── SMOOTH ANIMATIONS ──
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.section').forEach(section => {
+  observer.observe(section);
+});
+
+// ── CARD HOVER EFFECTS ──
+document.querySelectorAll('.overview-card').forEach(card => {
+  card.addEventListener('mouseenter', function() {
+    this.style.background = 'linear-gradient(135deg, var(--accent-dim), var(--bg-secondary))';
+  });
+  card.addEventListener('mouseleave', function() {
+    this.style.background = 'linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary))';
+  });
+});
 </script>
 
 </body>
