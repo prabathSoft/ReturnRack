@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReturnRack — Codebase Knowledge Graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── THEME (matching ReturnRack) ── */
+:root {
+  --bg:        #0e0f14;
+  --bg2:       #14161d;
+  --bg3:       #1c1e28;
+  --border:    #252836;
+  --text:      #f0f1f5;
+  --sub:       #6b7280;
+  --accent:    #6366f1;
+  --accent-h:  #4f46e5;
+  --accent-dim:#6366f120;
+  --c-green:   #10b981;
+  --c-green-d: #10b98120;
+  --c-red:     #ef4444;
+  --c-red-d:   #ef444420;
+  --c-blue:    #3b82f6;
+  --c-blue-d:  #3b82f620;
+  --c-amber:   #f59e0b;
+  --c-amber-d: #f59e0b20;
+  --c-purple:  #a855f7;
+  --sidebar-w: 260px;
+  --topbar-h:  58px;
+}
+
+body.light {
+  --bg:        #f0f2f5;
+  --bg2:       #ffffff;
+  --bg3:       #e8eaf0;
+  --border:    #d1d5db;
+  --text:      #111827;
+  --sub:       #6b7280;
+  --accent:    #4f46e5;
+  --accent-h:  #4338ca;
+  --accent-dim:#4f46e512;
+  --c-green-d: #10b98114;
+  --c-red-d:   #ef444414;
+  --c-blue-d:  #3b82f614;
+  --c-amber-d: #f59e0b14;
+}
+
+/* ── BASE ── */
+html, body { height: 100%; }
+body {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+  transition: background .25s, color .25s;
+}
+
+/* ════════════════════════════════════════
+   LAYOUT — sidebar + main
+════════════════════════════════════════ */
+.dash-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: var(--topbar-h) 1fr;
+  height: 100vh;
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+}
+
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+
+.topbar-logo {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.topbar-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.tb-btn {
+  padding: .35rem .85rem;
+  border-radius: 7px;
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  transition: background .15s;
+}
+
+.tb-btn:hover { background: var(--border); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow-y: auto;
+  padding: 1rem 0 1rem;
+}
+
+.sidebar-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--sub);
+  padding: .9rem 1.25rem .35rem;
+}
+
+.search-box {
+  width: calc(100% - 1.5rem);
+  margin: 0 .75rem .75rem;
+  padding: .6rem .85rem;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  transition: border .15s, box-shadow .15s;
+}
+
+.search-box:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+
+.search-box::placeholder { color: var(--sub); }
+
+.component-list {
+  padding: 0 .75rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.component-item {
+  padding: .5rem .85rem;
+  border-radius: 7px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 11px;
+  transition: all .15s;
+  color: var(--text);
+}
+
+.component-item:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+
+.component-item.active {
+  background: var(--accent);
+  border-color: var(--accent-h);
+  color: #fff;
+}
+
+.tour-buttons {
+  padding: .25rem .75rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: .4rem;
+}
+
+.tour-btn {
+  padding: .55rem .85rem;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.tour-btn:hover { background: var(--accent-h); }
+
+/* ── MAIN CONTENT ── */
+.main {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.control-bar {
+  padding: 1rem 1.5rem;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.control-bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.filter-btn {
+  padding: .4rem .9rem;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.filter-btn:hover {
+  background: var(--border);
+  border-color: var(--accent);
+}
+
+.filter-btn.active {
+  background: var(--accent);
+  border-color: var(--accent-h);
+  color: #fff;
+}
+
+/* ── GRAPH CONTAINER ── */
+.graph-wrapper {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  overflow: hidden;
+}
+
+#network {
+  background: var(--bg3);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── INSPECTOR PANEL ── */
+.inspector-panel {
+  background: var(--bg2);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 320px;
+}
+
+.panel-header {
+  padding: .9rem 1rem .7rem;
+  border-bottom: 1px solid var(--border);
+  font-family: 'Syne', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.inspector-empty {
+  font-size: 12px;
+  color: var(--sub);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.detail-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--sub);
+  font-weight: 600;
+}
+
+.detail-value {
+  font-size: 11px;
+  background: var(--bg3);
+  padding: .6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.plain-summary {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--accent-dim);
+  padding: .75rem;
+  border-radius: 7px;
+  border-left: 3px solid var(--accent);
+  margin-bottom: 1rem;
+}
+
+.relationships {
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+}
+
+.relationship-item {
+  font-size: 11px;
+  padding: .5rem .65rem;
+  background: var(--bg3);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.relationship-item:hover {
+  background: var(--border);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.badge {
+  display: inline-block;
+  padding: .2rem .5rem;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  margin-right: .4rem;
+  margin-bottom: .4rem;
+}
+
+.badge.module { background: var(--accent-dim); color: var(--accent); }
+.badge.function { background: var(--c-green-d); color: var(--c-green); }
+.badge.component { background: var(--c-blue-d); color: var(--c-blue); }
+.badge.ui-component { background: var(--c-purple); color: #fff; opacity: 0.9; }
+.badge.system { background: var(--c-amber-d); color: var(--c-amber); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+
+/* ── THEME FAB ── */
+#themeFab {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  z-index: 50;
+}
+
+#themeFab:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  transform: scale(1.05);
+}
+</style>
+</head>
+
+<body class="desktop">
+
+<!-- ══ DASHBOARD SHELL ══ -->
+<div class="dash-shell">
+
+  <!-- ── TOP BAR ── -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">🧠</div>
+      <span class="topbar-title">Codebase Knowledge Graph</span>
+    </div>
+    <div class="topbar-right">
+      <button class="tb-btn" id="resetViewBtn">Reset View</button>
+    </div>
+  </header>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    
+    <!-- Search -->
+    <div class="sidebar-section-label">Search</div>
+    <input type="text" class="search-box" id="searchBox" placeholder="Find components…" spellcheck="false">
+
+    <!-- Component List -->
+    <div class="sidebar-section-label" style="margin-top: .5rem;">Components</div>
+    <div class="component-list" id="componentList"></div>
+
+    <!-- Filters -->
+    <div class="sidebar-section-label" style="margin-top: .75rem;">Filter by type</div>
+    <div class="tour-buttons">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="module">Modules</button>
+      <button class="filter-btn" data-filter="function">Functions</button>
+      <button class="filter-btn" data-filter="component">Components</button>
+    </div>
+
+    <!-- Guided Tours -->
+    <div class="sidebar-section-label" style="margin-top: .75rem;">Guided tours</div>
+    <div class="tour-buttons">
+      <button class="tour-btn" onclick="startTour('prediction')">📊 Prediction Flow</button>
+      <button class="tour-btn" onclick="startTour('training')">🔄 Training</button>
+      <button class="tour-btn" onclick="startTour('ui')">🎨 UI Components</button>
+      <button class="tour-btn" onclick="startTour('layers')">📦 Model Layers</button>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN CONTENT ── -->
+  <main class="main">
+
+    <!-- Control Bar -->
+    <div class="control-bar">
+      <span class="control-bar-label">🎯 Interactive Visualization</span>
+      <span style="font-size: 11px; color: var(--sub);">Click nodes to explore • Drag to pan • Scroll to zoom</span>
+    </div>
+
+    <!-- Graph + Inspector -->
+    <div class="graph-wrapper">
+      <div id="network"></div>
+
+      <!-- Inspector Panel -->
+      <div class="inspector-panel">
+        <div class="panel-header">📋 Node Details</div>
+        <div class="panel-content">
+          <div id="inspectorContent" class="inspector-empty">
+            Click any node to explore
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<!-- THEME FAB -->
+<button id="themeFab" title="Toggle theme">🌙</button>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// KNOWLEDGE GRAPH DATA DEFINITION
+// ════════════════════════════════════════════════════════════════
+
+const nodeData = {
+  // ── CORE MODULES ──
+  'app': {
+    type: 'module',
+    label: 'ReturnRack App',
+    summary: 'Main application container. Orchestrates UI rendering, model lifecycle, and user interactions across desktop and mobile views.',
+    components: ['ui', 'model-system', 'data-pipeline'],
+    color: '#6366f1',
+  },
+  'ui': {
+    type: 'module',
+    label: 'UI System',
+    summary: 'Complete user interface including dashboard layout, sidebar, result panels, recent scans table, merchant breakdown, and theme toggling. Supports both desktop and mobile views.',
+    functions: ['initUI', 'renderResult', 'updateMerchantPanel', 'updateRecentScans', 'toggleTheme', 'toggleView'],
+    children: ['topbar', 'sidebar-ui', 'main-content-ui', 'inspector'],
+    color: '#a855f7',
+  },
+  'model-system': {
+    type: 'module',
+    label: 'Model System',
+    summary: 'Manages the 4-layer prediction model: rule engine, merchant lookup, GBT ensemble, and statistical models. Handles model initialization, training, and inference.',
+    functions: ['buildModel', 'predict', 'trainModel', 'loadModel', 'saveModel'],
+    children: ['layer-1-rules', 'layer-2-merchant', 'layer-3-gbt', 'layer-4-stats'],
+    color: '#10b981',
+  },
+  'data-pipeline': {
+    type: 'module',
+    label: 'Data Pipeline',
+    summary: 'Manages CSV parsing, data validation, feature extraction, and training dataset preparation. Bridges user input to model training.',
+    functions: ['parseCsv', 'validateData', 'extractFeatures', 'buildTrainingSet'],
+    color: '#f59e0b',
+  },
+
+  // ── LAYER 1: RULE ENGINE ──
+  'layer-1-rules': {
+    type: 'component',
+    label: 'Layer 1: Rule Engine',
+    summary: 'Deterministic pattern matching covering ~65% of cases at 98% accuracy. Uses hardcoded and learned prefix/suffix/pattern rules. Fast and reliable for known patterns.',
+    functions: ['rulePredict', 'buildRuleStats', 'matchPrefix', 'matchStructural'],
+    accuracy: '98%',
+    coverage: '65%',
+    color: '#10b981',
+  },
+  'layer-2-merchant': {
+    type: 'component',
+    label: 'Layer 2: Merchant Lookup',
+    summary: 'Associates tracking IDs with merchants using Bayesian probability. Identifies high-purity merchant→warehouse mappings with >95% confidence.',
+    functions: ['merchantPredict', 'buildMerchantStats', 'checkPureMerchant'],
+    accuracy: '92%',
+    coverage: '20%',
+    color: '#3b82f6',
+  },
+  'layer-3-gbt': {
+    type: 'component',
+    label: 'Layer 3: GBT Ensemble',
+    summary: 'Gradient Boosted Trees for ambiguous IDs. Learns subtle pattern dependencies using character n-grams, positional substrings, and Markov transitions.',
+    functions: ['buildGBT', 'predictGBT', 'trainGBT', 'softmaxProb'],
+    accuracy: 'Cross-validated',
+    coverage: '15%',
+    color: '#ef4444',
+  },
+  'layer-4-stats': {
+    type: 'component',
+    label: 'Layer 4: Statistics',
+    summary: 'Markov chains and n-gram frequency tables for string features. Improves predictive context for rare or novel tracking ID patterns.',
+    functions: ['buildNGramStats', 'buildMarkovStats', 'buildLengthStats'],
+    color: '#a855f7',
+  },
+
+  // ── KEY FUNCTIONS ──
+  'rulePredict': {
+    type: 'function',
+    label: 'rulePredict(id)',
+    summary: 'Applies deterministic rules to tracking ID. Returns warehouse, confidence, and certainty flag. Handles 20-digit DHL/GLS, 11-digit numeric, international format, and (Y) internal codes.',
+    inputs: ['tracking_id'],
+    outputs: ['warehouse', 'confidence', 'certain'],
+    parent: 'layer-1-rules',
+    color: '#10b981',
+  },
+  'buildRuleStats': {
+    type: 'function',
+    label: 'buildRuleStats(data)',
+    summary: 'Learns prefix→warehouse frequencies from training data. Extracts positional patterns for 20-digit IDs.',
+    inputs: ['training_data'],
+    outputs: ['ruleStats'],
+    parent: 'layer-1-rules',
+    color: '#10b981',
+  },
+  'predict': {
+    type: 'function',
+    label: 'predict(id, merchant)',
+    summary: 'Main prediction orchestrator. Cascades through all 4 layers. Returns final warehouse prediction with confidence and resolver info.',
+    inputs: ['tracking_id', 'merchant_id'],
+    outputs: ['prediction_result'],
+    parent: 'model-system',
+    color: '#6366f1',
+  },
+  'trainModel': {
+    type: 'function',
+    label: 'trainModel(csv_data)',
+    summary: 'End-to-end training pipeline. Parses CSV, extracts features, trains GBT ensemble, validates with k-fold cross-validation.',
+    inputs: ['csv_file'],
+    outputs: ['trained_model'],
+    parent: 'model-system',
+    color: '#6366f1',
+  },
+  'buildGBT': {
+    type: 'function',
+    label: 'buildGBT(features, labels)',
+    summary: 'Constructs decision tree ensemble using gradient boosting. Trees partition feature space. Uses cross-entropy loss.',
+    inputs: ['feature_matrix', 'labels'],
+    outputs: ['gbt_trees'],
+    parent: 'layer-3-gbt',
+    color: '#ef4444',
+  },
+  'parseCsv': {
+    type: 'function',
+    label: 'parseCsv(text)',
+    summary: 'Parses CSV file into {TrackingID, Merchant, Warehouse} structure. Handles quoted fields.',
+    inputs: ['csv_text'],
+    outputs: ['parsed_data'],
+    parent: 'data-pipeline',
+    color: '#f59e0b',
+  },
+  'merchantPredict': {
+    type: 'function',
+    label: 'merchantPredict(id, merchant)',
+    summary: 'Bayesian merchant lookup. Returns warehouse if merchant→warehouse mapping confidence >95%.',
+    inputs: ['tracking_id', 'merchant'],
+    outputs: ['warehouse', 'confidence'],
+    parent: 'layer-2-merchant',
+    color: '#3b82f6',
+  },
+
+  // ── UI COMPONENTS ──
+  'topbar-ui': {
+    type: 'ui-component',
+    label: 'Top Bar',
+    summary: 'Header with app logo, title, model status indicator, and control buttons.',
+    features: ['brand_display', 'status_dot', 'buttons'],
+    color: '#a855f7',
+  },
+  'sidebar-ui': {
+    type: 'ui-component',
+    label: 'Sidebar',
+    summary: 'Left panel with model state, file uploads, training progress, session stats, and warehouse split visualization.',
+    features: ['model_panel', 'file_upload', 'stats', 'charts'],
+    color: '#a855f7',
+  },
+  'result-panel': {
+    type: 'ui-component',
+    label: 'Result Panel',
+    summary: 'Central display showing prediction: warehouse badge, confidence meter, layer breakdown, metadata.',
+    features: ['badge', 'confidence_track', 'breakdown'],
+    color: '#a855f7',
+  },
+  'recent-scans': {
+    type: 'ui-component',
+    label: 'Recent Scans Table',
+    summary: 'Scrollable table logging all predictions: TrackingID, Warehouse, Confidence, Timestamp.',
+    features: ['table', 'sorting', 'highlighting'],
+    color: '#a855f7',
+  },
+  'merchant-panel': {
+    type: 'ui-component',
+    label: 'Merchant Panel',
+    summary: 'Right sidebar showing merchant breakdown by frequency and percentage.',
+    features: ['list', 'counts', 'percentages'],
+    color: '#a855f7',
+  },
+
+  // ── SUPPORTING SYSTEMS ──
+  'feature-extraction': {
+    type: 'system',
+    label: 'Feature Extraction',
+    summary: 'Converts tracking IDs into numerical vectors for GBT. Extracts n-grams, positional features, character frequencies.',
+    features: ['ngram_extraction', 'positional_features', 'markov_chains'],
+    color: '#06b6d4',
+  },
+  'confidence-calc': {
+    type: 'system',
+    label: 'Confidence Calculation',
+    summary: 'Computes scores from rules or GBT softmax. Combines layer confidences, prioritizes high-confidence sources.',
+    formula: 'Conf(y) = max(RuleConf, ModelConf)',
+    color: '#06b6d4',
+  },
+  'session-tracking': {
+    type: 'system',
+    label: 'Session Tracking',
+    summary: 'Maintains in-session state: recent scans, warehouse counts, merchant frequencies, UI update triggers.',
+    state_vars: ['berCount', 'pozCount', 'totalCount', 'recentScans'],
+    color: '#06b6d4',
+  },
+};
+
+const edgeData = [
+  // App structure
+  { from: 'app', to: 'ui', label: 'renders' },
+  { from: 'app', to: 'model-system', label: 'orchestrates' },
+  { from: 'app', to: 'data-pipeline', label: 'feeds' },
+
+  // UI hierarchy
+  { from: 'ui', to: 'topbar-ui', label: 'contains' },
+  { from: 'ui', to: 'sidebar-ui', label: 'contains' },
+  { from: 'ui', to: 'result-panel', label: 'displays' },
+  { from: 'ui', to: 'recent-scans', label: 'logs' },
+  { from: 'ui', to: 'merchant-panel', label: 'analyzes' },
+
+  // Model layers
+  { from: 'model-system', to: 'layer-1-rules', label: 'cascades' },
+  { from: 'layer-1-rules', to: 'layer-2-merchant', label: 'fallback' },
+  { from: 'layer-2-merchant', to: 'layer-3-gbt', label: 'fallback' },
+  { from: 'layer-3-gbt', to: 'layer-4-stats', label: 'uses' },
+
+  // Key functions
+  { from: 'predict', to: 'rulePredict', label: 'calls' },
+  { from: 'predict', to: 'merchantPredict', label: 'calls' },
+  { from: 'predict', to: 'buildGBT', label: 'uses' },
+  { from: 'trainModel', to: 'parseCsv', label: 'uses' },
+  { from: 'trainModel', to: 'buildRuleStats', label: 'trains' },
+  { from: 'trainModel', to: 'buildGBT', label: 'builds' },
+
+  // Support systems
+  { from: 'predict', to: 'confidence-calc', label: 'computes' },
+  { from: 'predict', to: 'session-tracking', label: 'updates' },
+  { from: 'buildGBT', to: 'feature-extraction', label: 'requires' },
+  { from: 'rulePredict', to: 'feature-extraction', label: 'uses' },
+];
+
+// ════════════════════════════════════════════════════════════════
+// VIS.JS NETWORK INITIALIZATION
+// ════════════════════════════════════════════════════════════════
+
+const nodes = new vis.DataSet(Object.entries(nodeData).map(([id, data]) => ({
+  id,
+  label: data.label,
+  color: {
+    background: data.color,
+    border: data.type === 'function' ? '#fff' : data.color,
+    highlight: {
+      background: data.color,
+      border: '#fff',
+    }
+  },
+  shape: data.type === 'function' ? 'box' : (data.type === 'system' ? 'diamond' : 'dot'),
+  title: data.summary,
+  font: { size: 12, face: 'JetBrains Mono', color: '#fff', bold: { size: 14 } },
+  borderWidth: 2,
+  shadowColor: 'rgba(0,0,0,0.5)',
+  shadowSize: 10,
+  shadowX: 0,
+  shadowY: 0,
+  shadow: true,
+})));
+
+const edges = new vis.DataSet(edgeData.map(e => ({
+  from: e.from,
+  to: e.to,
+  label: e.label,
+  arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+  font: { size: 9, align: 'middle', color: '#6b7280', face: 'JetBrains Mono' },
+  smooth: { type: 'cubicBezier', forceDirection: 'vertical' },
+  color: { color: '#4b5563', highlight: '#6366f1' },
+  width: 1.5,
+  hoverWidth: 2.5,
+})));
+
+const container = document.getElementById('network');
+const data = { nodes, edges };
+const options = {
+  physics: {
+    enabled: true,
+    barnesHut: {
+      gravitationalConstant: -20000,
+      centralGravity: 0.3,
+      springLength: 200,
+      springConstant: 0.05,
+    },
+    solver: 'barnesHut',
+    timestep: 0.5,
+  },
+  interaction: {
+    hover: true,
+    navigationButtons: true,
+    keyboard: true,
+  },
+  nodes: {
+    borderWidthSelected: 3,
+  },
+  edges: {
+    arrows: { to: { enabled: true, scaleFactor: 0.8 } },
+  },
+};
+
+const network = new vis.Network(container, data, options);
+
+// ════════════════════════════════════════════════════════════════
+// INSPECTOR PANEL & INTERACTION
+// ════════════════════════════════════════════════════════════════
+
+network.on('click', (params) => {
+  const nodeId = params.nodes[0];
+  if (!nodeId) {
+    document.getElementById('inspectorContent').innerHTML = '<div class="inspector-empty">Click any node to explore</div>';
+    return;
+  }
+
+  const node = nodeData[nodeId];
+  if (!node) return;
+
+  let html = `<div class="detail-section">
+    <span class="badge ${node.type}">${node.type.toUpperCase()}</span>
+  </div>`;
+
+  html += `<div class="plain-summary">${node.summary}</div>`;
+
+  if (node.functions && node.functions.length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-label">Functions</div>
+      <div class="detail-value">${node.functions.join(', ')}</div>
+    </div>`;
+  }
+
+  if (node.inputs && node.inputs.length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-label">Inputs</div>
+      <div class="detail-value">${node.inputs.join(', ')}</div>
+    </div>`;
+  }
+
+  if (node.outputs && node.outputs.length > 0) {
+    html += `<div class="detail-section">
+      <div class="detail-label">Outputs</div>
+      <div class="detail-value">${node.outputs.join(', ')}</div>
+    </div>`;
+  }
+
+  if (node.accuracy) {
+    html += `<div class="detail-section">
+      <div class="detail-label">Accuracy</div>
+      <div class="detail-value">${node.accuracy}</div>
+    </div>`;
+  }
+
+  if (node.coverage) {
+    html += `<div class="detail-section">
+      <div class="detail-label">Coverage</div>
+      <div class="detail-value">${node.coverage}</div>
+    </div>`;
+  }
+
+  if ((node.components || node.children || node.features) && (node.components?.length > 0 || node.children?.length > 0 || node.features?.length > 0)) {
+    const items = (node.components || node.children || node.features || []).filter(i => i);
+    if (items.length > 0) {
+      html += `<div class="detail-section">
+        <div class="detail-label">Contains / Uses</div>
+        <div class="relationships">`;
+      items.forEach(item => {
+        if (nodeData[item]) {
+          html += `<div class="relationship-item" onclick="selectNode('${item}')">${nodeData[item].label}</div>`;
+        }
+      });
+      html += `</div></div>`;
+    }
+  }
+
+  document.getElementById('inspectorContent').innerHTML = html;
+});
+
+function selectNode(nodeId) {
+  network.selectNodes([nodeId]);
+  network.focus(nodeId, { animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
+  network.emit('click', { nodes: [nodeId] });
+}
+
+// ════════════════════════════════════════════════════════════════
+// COMPONENT LIST & SEARCH
+// ════════════════════════════════════════════════════════════════
+
+let currentFilter = 'all';
+
+function populateComponentList(filter = 'all') {
+  const list = document.getElementById('componentList');
+  let filtered = Object.entries(nodeData)
+    .filter(([_, data]) => filter === 'all' || data.type === filter)
+    .map(([id, data]) => `<div class="component-item" onclick="selectNode('${id}')">${data.label}</div>`)
+    .join('');
+  list.innerHTML = filtered || '<div style="color: var(--sub); font-size: 11px; padding: 1rem .75rem;">No components</div>';
+}
+
+document.getElementById('searchBox').addEventListener('keyup', (e) => {
+  const query = e.target.value.toLowerCase();
+  const list = document.getElementById('componentList');
+  const results = Object.entries(nodeData)
+    .filter(([_, data]) => (currentFilter === 'all' || data.type === currentFilter) && data.label.toLowerCase().includes(query))
+    .map(([id, data]) => `<div class="component-item" onclick="selectNode('${id}')">${data.label}</div>`)
+    .join('');
+  list.innerHTML = results || '<div style="color: var(--sub); font-size: 11px; padding: 1rem .75rem;">No matches</div>';
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.filter;
+    document.getElementById('searchBox').value = '';
+    populateComponentList(currentFilter);
+  });
+});
+
+// ════════════════════════════════════════════════════════════════
+// GUIDED TOURS
+// ════════════════════════════════════════════════════════════════
+
+const tours = {
+  prediction: [
+    'app', 'predict', 'rulePredict', 'layer-1-rules', 'merchantPredict', 'layer-2-merchant', 'buildGBT', 'layer-3-gbt', 'confidence-calc', 'session-tracking',
+  ],
+  training: [
+    'app', 'data-pipeline', 'parseCsv', 'buildRuleStats', 'layer-1-rules', 'feature-extraction', 'trainModel', 'buildGBT', 'layer-3-gbt', 'model-system',
+  ],
+  ui: [
+    'ui', 'topbar-ui', 'sidebar-ui', 'result-panel', 'recent-scans', 'merchant-panel',
+  ],
+  layers: [
+    'model-system', 'layer-1-rules', 'layer-2-merchant', 'layer-3-gbt', 'layer-4-stats',
+  ],
+};
+
+function startTour(tourName) {
+  const tour = tours[tourName];
+  let idx = 0;
+
+  function nextStep() {
+    if (idx < tour.length) {
+      selectNode(tour[idx]);
+      idx++;
+      setTimeout(nextStep, 1500);
+    }
+  }
+
+  nextStep();
+}
+
+// ════════════════════════════════════════════════════════════════
+// THEME TOGGLE
+// ════════════════════════════════════════════════════════════════
+
+document.getElementById('themeFab').addEventListener('click', () => {
+  document.body.classList.toggle('light');
+  document.getElementById('themeFab').textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+});
+
+// ════════════════════════════════════════════════════════════════
+// RESET VIEW
+// ════════════════════════════════════════════════════════════════
+
+document.getElementById('resetViewBtn').addEventListener('click', () => {
+  network.unselectAll();
+  network.fit();
+  document.getElementById('inspectorContent').innerHTML = '<div class="inspector-empty">Click any node to explore</div>';
+});
+
+// ════════════════════════════════════════════════════════════════
+// INITIALIZATION
+// ════════════════════════════════════════════════════════════════
+
+populateComponentList();
+network.fit();
+</script>
+
+</body>
+</html>
