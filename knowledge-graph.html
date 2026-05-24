@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReturnRack — Codebase Knowledge Graph</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+<title>ReturnRack — Complete Codebase Knowledge Graph</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ── RESET ── */
@@ -31,7 +29,7 @@
   --c-amber:   #f59e0b;
   --c-amber-d: #f59e0b20;
   --c-purple:  #a855f7;
-  --sidebar-w: 260px;
+  --sidebar-w: 280px;
   --topbar-h:  58px;
 }
 
@@ -62,19 +60,15 @@ body {
 }
 
 /* ════════════════════════════════════════
-   LAYOUT — sidebar + main
+   LAYOUT
 ════════════════════════════════════════ */
-.dash-shell {
+.container {
   display: grid;
-  grid-template-columns: var(--sidebar-w) 1fr;
   grid-template-rows: var(--topbar-h) 1fr;
   height: 100vh;
 }
 
-/* ── TOP BAR ── */
 .topbar {
-  grid-column: 1 / -1;
-  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -128,212 +122,347 @@ body {
 
 .tb-btn:hover { background: var(--border); }
 
-/* ── SIDEBAR ── */
-.sidebar {
-  grid-column: 1;
-  grid-row: 2;
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow-y: auto;
-  padding: 1rem 0 1rem;
-}
-
-.sidebar-section-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--sub);
-  padding: .9rem 1.25rem .35rem;
-}
-
-.search-box {
-  width: calc(100% - 1.5rem);
-  margin: 0 .75rem .75rem;
-  padding: .6rem .85rem;
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  transition: border .15s, box-shadow .15s;
-}
-
-.search-box:focus {
-  border-color: var(--accent);
-  outline: none;
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-
-.search-box::placeholder { color: var(--sub); }
-
-.component-list {
-  padding: 0 .75rem;
-  display: flex;
-  flex-direction: column;
-  gap: .4rem;
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.component-item {
-  padding: .5rem .85rem;
-  border-radius: 7px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  font-size: 11px;
-  transition: all .15s;
-  color: var(--text);
-}
-
-.component-item:hover {
-  background: var(--border);
-  border-color: var(--accent);
-}
-
-.component-item.active {
-  background: var(--accent);
-  border-color: var(--accent-h);
-  color: #fff;
-}
-
-.tour-buttons {
-  padding: .25rem .75rem;
+/* ── MAIN CONTENT ── */
+.content {
   display: grid;
   grid-template-columns: 1fr;
-  gap: .4rem;
-}
-
-.tour-btn {
-  padding: .55rem .85rem;
-  border-radius: 7px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  font-family: 'Syne', sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background .15s;
-}
-
-.tour-btn:hover { background: var(--accent-h); }
-
-/* ── MAIN CONTENT ── */
-.main {
-  grid-column: 2;
-  grid-row: 2;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  overflow: hidden;
+  overflow-y: auto;
   background: var(--bg);
+  padding: 2rem;
+  gap: 2rem;
 }
 
-.control-bar {
-  padding: 1rem 1.5rem;
+/* ── SECTION BLOCKS ── */
+.section {
   background: var(--bg2);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
   display: flex;
+  flex-direction: column;
   gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
 }
 
-.control-bar-label {
+.section-header {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
+}
+
+.section-description {
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.6;
+  background: var(--bg3);
+  padding: .75rem;
+  border-radius: 7px;
+  border-left: 3px solid var(--accent);
+}
+
+/* ── OVERVIEW SECTION ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.overview-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card-stat {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.card-label {
   font-size: 11px;
-  font-weight: 600;
   color: var(--sub);
   text-transform: uppercase;
   letter-spacing: .05em;
 }
 
-.filter-btn {
-  padding: .4rem .9rem;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg3);
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all .15s;
-}
-
-.filter-btn:hover {
-  background: var(--border);
-  border-color: var(--accent);
-}
-
-.filter-btn.active {
-  background: var(--accent);
-  border-color: var(--accent-h);
-  color: #fff;
-}
-
-/* ── GRAPH CONTAINER ── */
-.graph-wrapper {
-  flex: 1;
+/* ── LAYER BLOCK ── */
+.layers-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  overflow: hidden;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
 }
 
-#network {
+.layer-block {
   background: var(--bg3);
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  flex: 1;
-  overflow: hidden;
-}
-
-/* ── INSPECTOR PANEL ── */
-.inspector-panel {
-  background: var(--bg2);
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border: 2px solid;
+  border-radius: 10px;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  min-width: 320px;
+  gap: 1rem;
 }
 
-.panel-header {
-  padding: .9rem 1rem .7rem;
+.layer-1 { border-color: var(--c-green); background: linear-gradient(135deg, #10b98120 0%, var(--bg3) 100%); }
+.layer-2 { border-color: var(--c-blue); background: linear-gradient(135deg, #3b82f620 0%, var(--bg3) 100%); }
+.layer-3 { border-color: var(--c-red); background: linear-gradient(135deg, #ef444420 0%, var(--bg3) 100%); }
+.layer-4 { border-color: var(--c-purple); background: linear-gradient(135deg, #a855f720 0%, var(--bg3) 100%); }
+
+.layer-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: .75rem;
   border-bottom: 1px solid var(--border);
+}
+
+.layer-icon {
+  font-size: 24px;
+}
+
+.layer-title {
   font-family: 'Syne', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--accent);
 }
 
-.panel-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1rem;
+.layer-badge {
+  display: inline-block;
+  padding: .2rem .6rem;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--bg);
 }
 
-.inspector-empty {
-  font-size: 12px;
+.layer-1 .layer-badge { background: var(--c-green-d); color: var(--c-green); }
+.layer-2 .layer-badge { background: var(--c-blue-d); color: var(--c-blue); }
+.layer-3 .layer-badge { background: var(--c-red-d); color: var(--c-red); }
+.layer-4 .layer-badge { background: var(--c-purple); color: #fff; opacity: 0.9; }
+
+.layer-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  padding: .75rem;
+  background: var(--bg);
+  border-radius: 6px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.stat-label {
+  font-size: 10px;
   color: var(--sub);
-  text-align: center;
-  padding: 2rem 1rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
 }
 
-.detail-section {
+.stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.layer-description {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.layer-details {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.detail-item {
+  background: var(--bg);
+  padding: .6rem;
+  border-radius: 6px;
+  border-left: 2px solid var(--accent);
+}
+
+.detail-item-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--sub);
+  margin-bottom: .2rem;
+}
+
+.detail-item-value {
+  font-size: 11px;
+  color: var(--text);
+}
+
+/* ── MODULES SECTION ── */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.module-block {
+  background: var(--bg3);
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.module-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.module-icon {
+  font-size: 24px;
+}
+
+.module-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.module-description {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--sub);
+}
+
+.functions-list {
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  margin-bottom: 1rem;
 }
 
-.detail-label {
+.functions-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--sub);
+  font-weight: 600;
+  margin-bottom: .25rem;
+}
+
+.function-item {
+  background: var(--bg);
+  padding: .6rem .75rem;
+  border-radius: 6px;
+  border-left: 2px solid var(--c-green);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.relationships-box {
+  background: var(--bg);
+  padding: .75rem;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+}
+
+.relationships-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--sub);
+  font-weight: 600;
+  margin-bottom: .5rem;
+}
+
+.relationship-item-text {
+  font-size: 11px;
+  color: var(--text);
+  margin-bottom: .4rem;
+  padding-left: .5rem;
+  border-left: 2px solid var(--accent);
+}
+
+/* ── FUNCTIONS SECTION ── */
+.functions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.function-block {
+  background: var(--bg3);
+  border: 2px solid var(--c-green);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.function-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.function-icon {
+  font-size: 20px;
+}
+
+.function-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-green);
+}
+
+.function-signature {
+  background: var(--bg);
+  padding: .6rem;
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--text);
+  overflow: auto;
+  border: 1px solid var(--border);
+}
+
+.attributes-section {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.attributes-label {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: .1em;
@@ -341,69 +470,72 @@ body {
   font-weight: 600;
 }
 
-.detail-value {
+.attribute-row {
+  background: var(--bg);
+  padding: .5rem .65rem;
+  border-radius: 5px;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: .5rem;
   font-size: 11px;
-  background: var(--bg3);
-  padding: .6rem;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  word-break: break-all;
-  line-height: 1.4;
 }
 
-.plain-summary {
-  font-size: 12px;
-  line-height: 1.6;
+.attribute-key {
+  color: var(--c-amber);
+  font-weight: 600;
+}
+
+.attribute-value {
   color: var(--text);
-  background: var(--accent-dim);
-  padding: .75rem;
-  border-radius: 7px;
-  border-left: 3px solid var(--accent);
-  margin-bottom: 1rem;
+  word-break: break-word;
 }
 
-.relationships {
+/* ── COMPONENTS SECTION ── */
+.components-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.component-block {
+  background: var(--bg3);
+  border: 2px solid var(--c-blue);
+  border-radius: 10px;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: .4rem;
+  gap: .75rem;
 }
 
-.relationship-item {
+.component-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding-bottom: .75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.component-icon {
+  font-size: 24px;
+}
+
+.component-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-blue);
+}
+
+.component-description {
   font-size: 11px;
-  padding: .5rem .65rem;
-  background: var(--bg3);
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: all .15s;
+  line-height: 1.5;
+  color: var(--text);
 }
 
-.relationship-item:hover {
-  background: var(--border);
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.badge {
-  display: inline-block;
-  padding: .2rem .5rem;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 600;
-  margin-right: .4rem;
-  margin-bottom: .4rem;
-}
-
-.badge.module { background: var(--accent-dim); color: var(--accent); }
-.badge.function { background: var(--c-green-d); color: var(--c-green); }
-.badge.component { background: var(--c-blue-d); color: var(--c-blue); }
-.badge.ui-component { background: var(--c-purple); color: #fff; opacity: 0.9; }
-.badge.system { background: var(--c-amber-d); color: var(--c-amber); }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 /* ── THEME FAB ── */
 #themeFab {
@@ -429,536 +561,1177 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,.4);
   transform: scale(1.05);
 }
+
+/* ── SCROLL TO TOP ── */
+#scrollTopBtn {
+  position: fixed;
+  bottom: 5.5rem;
+  right: 1.25rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
+  cursor: pointer;
+  font-size: 18px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+  z-index: 50;
+}
+
+#scrollTopBtn:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+  transform: scale(1.05);
+}
+
+#scrollTopBtn.show { display: flex; }
 </style>
 </head>
 
 <body class="desktop">
 
-<!-- ══ DASHBOARD SHELL ══ -->
-<div class="dash-shell">
+<!-- ── TOP BAR ── -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">🧠</div>
+    <span class="topbar-title">ReturnRack — Complete Knowledge Graph</span>
+  </div>
+  <div class="topbar-right">
+    <button class="tb-btn" id="scrollTopBtn">↑ Top</button>
+  </div>
+</div>
 
-  <!-- ── TOP BAR ── -->
-  <header class="topbar">
-    <div class="topbar-brand">
-      <div class="topbar-logo">🧠</div>
-      <span class="topbar-title">Codebase Knowledge Graph</span>
+<!-- ── MAIN CONTENT ── -->
+<div class="content" id="mainContent">
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- 1. PROJECT OVERVIEW -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">📋 Complete Project Overview</div>
+    <div class="section-description">
+      ReturnRack is an AI-powered warehouse returns routing application. It uses a cascaded 4-layer prediction model to classify returned parcels to their appropriate warehouse. The system combines deterministic rules, merchant lookup, gradient boosted trees, and statistical models for accurate warehouse assignment with real-time confidence metrics.
     </div>
-    <div class="topbar-right">
-      <button class="tb-btn" id="resetViewBtn">Reset View</button>
+    <div class="overview-grid">
+      <div class="overview-card">
+        <div class="card-title">🏗️ Architecture Pattern</div>
+        <div class="card-label">Cascading Layered Predictor</div>
+        <div class="card-stat">4 Layers</div>
+      </div>
+      <div class="overview-card">
+        <div class="card-title">🔄 Primary Pipeline</div>
+        <div class="card-label">Input → Predict → Track</div>
+        <div class="card-stat">Real-time</div>
+      </div>
+      <div class="overview-card">
+        <div class="card-title">📊 Core Modules</div>
+        <div class="card-label">UI, Model, Data</div>
+        <div class="card-stat">3 Systems</div>
+      </div>
+      <div class="overview-card">
+        <div class="card-title">🎯 Target Output</div>
+        <div class="card-label">Warehouse + Confidence</div>
+        <div class="card-stat">0-1 Score</div>
+      </div>
+      <div class="overview-card">
+        <div class="card-title">💾 Frontend Stack</div>
+        <div class="card-label">HTML5, CSS, Vanilla JS</div>
+        <div class="card-stat">Client-side</div>
+      </div>
+      <div class="overview-card">
+        <div class="card-title">🔐 Data Privacy</div>
+        <div class="card-label">No Backend Required</div>
+        <div class="card-stat">Browser-only</div>
+      </div>
     </div>
-  </header>
+  </div>
 
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar">
-    
-    <!-- Search -->
-    <div class="sidebar-section-label">Search</div>
-    <input type="text" class="search-box" id="searchBox" placeholder="Find components…" spellcheck="false">
-
-    <!-- Component List -->
-    <div class="sidebar-section-label" style="margin-top: .5rem;">Components</div>
-    <div class="component-list" id="componentList"></div>
-
-    <!-- Filters -->
-    <div class="sidebar-section-label" style="margin-top: .75rem;">Filter by type</div>
-    <div class="tour-buttons">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="module">Modules</button>
-      <button class="filter-btn" data-filter="function">Functions</button>
-      <button class="filter-btn" data-filter="component">Components</button>
+  <!-- ════════════════════════════════════════ -->
+  <!-- 2. LAYER ARCHITECTURE & DETAILS -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">🔗 Layer Arrangement & Details</div>
+    <div class="section-description">
+      ReturnRack uses a cascading prediction architecture where each layer progressively handles more complex patterns. Layer 1 catches high-confidence cases (~65%), Layer 2 uses merchant associations (~20%), Layer 3 applies machine learning (~15%), and Layer 4 provides statistical context for feature engineering.
     </div>
+    <div class="layers-grid">
+      <!-- LAYER 1 -->
+      <div class="layer-block layer-1">
+        <div class="layer-header">
+          <div class="layer-icon">⚡</div>
+          <div>
+            <div class="layer-title">Layer 1: Rule Engine</div>
+            <span class="layer-badge">Deterministic</span>
+          </div>
+        </div>
+        
+        <div class="layer-stats">
+          <div class="stat-box">
+            <div class="stat-label">Coverage</div>
+            <div class="stat-value">65%</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value">98%</div>
+          </div>
+        </div>
 
-    <!-- Guided Tours -->
-    <div class="sidebar-section-label" style="margin-top: .75rem;">Guided tours</div>
-    <div class="tour-buttons">
-      <button class="tour-btn" onclick="startTour('prediction')">📊 Prediction Flow</button>
-      <button class="tour-btn" onclick="startTour('training')">🔄 Training</button>
-      <button class="tour-btn" onclick="startTour('ui')">🎨 UI Components</button>
-      <button class="tour-btn" onclick="startTour('layers')">📦 Model Layers</button>
-    </div>
+        <div class="layer-description">
+          Deterministic pattern matching using hardcoded and learned prefix/suffix rules. Covers 20-digit DHL/GLS codes, 11-digit patterns, international format IDs, and (Y) internal codes. No ML needed—rules are extracted directly from data analysis.
+        </div>
 
-  </aside>
+        <div class="layer-details">
+          <div class="detail-item">
+            <div class="detail-item-label">Key Patterns</div>
+            <div class="detail-item-value">Prefix rules, positional substrings, structural patterns</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Functions</div>
+            <div class="detail-item-value">rulePredict(), buildRuleStats()</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Output</div>
+            <div class="detail-item-value">{warehouse: str, confidence: 0-1, certain: bool}</div>
+          </div>
+        </div>
+      </div>
 
-  <!-- ── MAIN CONTENT ── -->
-  <main class="main">
+      <!-- LAYER 2 -->
+      <div class="layer-block layer-2">
+        <div class="layer-header">
+          <div class="layer-icon">🏪</div>
+          <div>
+            <div class="layer-title">Layer 2: Merchant Lookup</div>
+            <span class="layer-badge">Bayesian</span>
+          </div>
+        </div>
+        
+        <div class="layer-stats">
+          <div class="stat-box">
+            <div class="stat-label">Coverage</div>
+            <div class="stat-value">20%</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value">92%</div>
+          </div>
+        </div>
 
-    <!-- Control Bar -->
-    <div class="control-bar">
-      <span class="control-bar-label">🎯 Interactive Visualization</span>
-      <span style="font-size: 11px; color: var(--sub);">Click nodes to explore • Drag to pan • Scroll to zoom</span>
-    </div>
+        <div class="layer-description">
+          Probabilistic merchant→warehouse association. Tracks high-purity merchant mappings where P(warehouse|merchant) ≫ 0.95. Falls back to Layer 3 if merchant association is ambiguous or unknown.
+        </div>
 
-    <!-- Graph + Inspector -->
-    <div class="graph-wrapper">
-      <div id="network"></div>
+        <div class="layer-details">
+          <div class="detail-item">
+            <div class="detail-item-label">Strategy</div>
+            <div class="detail-item-value">Bayesian probability with confidence threshold</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Functions</div>
+            <div class="detail-item-value">merchantPredict(), buildMerchantStats()</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Data</div>
+            <div class="detail-item-value">merchantStats, pureMerchants, mixedMerchants</div>
+          </div>
+        </div>
+      </div>
 
-      <!-- Inspector Panel -->
-      <div class="inspector-panel">
-        <div class="panel-header">📋 Node Details</div>
-        <div class="panel-content">
-          <div id="inspectorContent" class="inspector-empty">
-            Click any node to explore
+      <!-- LAYER 3 -->
+      <div class="layer-block layer-3">
+        <div class="layer-header">
+          <div class="layer-icon">🌳</div>
+          <div>
+            <div class="layer-title">Layer 3: Gradient Boosted Trees</div>
+            <span class="layer-badge">ML Ensemble</span>
+          </div>
+        </div>
+        
+        <div class="layer-stats">
+          <div class="stat-box">
+            <div class="stat-label">Coverage</div>
+            <div class="stat-value">15%</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Type</div>
+            <div class="stat-value">Ensemble</div>
+          </div>
+        </div>
+
+        <div class="layer-description">
+          Decision tree ensemble for ambiguous IDs. Learns subtle pattern dependencies through gradient boosting. Typically 30-50 trees with max depth 4-6. Uses cross-entropy loss and stratified k-fold validation for training.
+        </div>
+
+        <div class="layer-details">
+          <div class="detail-item">
+            <div class="detail-item-label">Features</div>
+            <div class="detail-item-value">n-grams, positional substrings, length, Markov states</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Functions</div>
+            <div class="detail-item-value">buildGBT(), predictGBT(), trainGBT(), softmaxProb()</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">State</div>
+            <div class="detail-item-value">gbtModel, gbtFeatureMap, gbtClasses, gbtAccuracy</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAYER 4 -->
+      <div class="layer-block layer-4">
+        <div class="layer-header">
+          <div class="layer-icon">📊</div>
+          <div>
+            <div class="layer-title">Layer 4: Statistical Models</div>
+            <span class="layer-badge">Feature Engineering</span>
+          </div>
+        </div>
+        
+        <div class="layer-stats">
+          <div class="stat-box">
+            <div class="stat-label">Purpose</div>
+            <div class="stat-value">Encoding</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Models</div>
+            <div class="stat-value">2 Types</div>
+          </div>
+        </div>
+
+        <div class="layer-description">
+          Markov chains and n-gram frequency tables. Converts tracking IDs into numerical feature vectors for Layer 3. Builds statistical models of string structure to represent rare or novel patterns effectively.
+        </div>
+
+        <div class="layer-details">
+          <div class="detail-item">
+            <div class="detail-item-label">Components</div>
+            <div class="detail-item-value">N-gram stats, Markov stats, length stats, positional stats</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Functions</div>
+            <div class="detail-item-value">buildNGramStats(), buildMarkovStats(), buildLengthStats()</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-item-label">Output</div>
+            <div class="detail-item-value">Feature vectors [0-1] for GBT input</div>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-  </main>
+  <!-- ════════════════════════════════════════ -->
+  <!-- 3. MODULES -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">📦 Core Modules</div>
+    <div class="section-description">
+      ReturnRack is organized into three primary modules: UI System (dashboard and user interactions), Model System (prediction engine), and Data Pipeline (CSV parsing and feature extraction). Each module is self-contained with clear responsibilities and relationships.
+    </div>
+    <div class="modules-grid">
+      <!-- MODULE: UI System -->
+      <div class="module-block">
+        <div class="module-header">
+          <div class="module-icon">🎨</div>
+          <div class="module-name">UI System</div>
+        </div>
+        <div class="module-description">
+          Complete user interface including dashboard layout, sidebar controls, result display panels, recent scans table, merchant breakdown chart, and theme toggling. Supports desktop and mobile views with responsive design.
+        </div>
+        <div>
+          <div class="functions-label">🔧 Functions</div>
+          <div class="functions-list">
+            <div class="function-item">• initUI() — Initialize all UI components</div>
+            <div class="function-item">• renderResult(pred) — Display prediction</div>
+            <div class="function-item">• updateMerchantPanel(stats) — Update merchant list</div>
+            <div class="function-item">• updateRecentScans(scan) — Log new scan</div>
+            <div class="function-item">• toggleTheme() — Switch light/dark mode</div>
+            <div class="function-item">• toggleView() — Switch desktop/mobile</div>
+          </div>
+        </div>
+        <div>
+          <div class="functions-label">📊 Sub-Components</div>
+          <div class="functions-list">
+            <div class="function-item">• Topbar (header)</div>
+            <div class="function-item">• Sidebar (model controls)</div>
+            <div class="function-item">• Result Panel (prediction display)</div>
+            <div class="function-item">• Recent Scans Table</div>
+            <div class="function-item">• Merchant Panel</div>
+            <div class="function-item">• Mobile Overlay</div>
+          </div>
+        </div>
+        <div class="relationships-box">
+          <div class="relationships-label">🔗 Relationships</div>
+          <div class="relationship-item-text">→ Receives predictions from Model System</div>
+          <div class="relationship-item-text">→ Sends user input to Model System</div>
+          <div class="relationship-item-text">→ Receives CSV from user</div>
+          <div class="relationship-item-text">← Receives training progress updates</div>
+        </div>
+      </div>
+
+      <!-- MODULE: Model System -->
+      <div class="module-block">
+        <div class="module-header">
+          <div class="module-icon">🧠</div>
+          <div class="module-name">Model System</div>
+        </div>
+        <div class="module-description">
+          Central prediction engine managing the 4-layer cascading model. Handles model initialization, training, inference, persistence, and accuracy tracking. Orchestrates all layer predictions and confidence calculations.
+        </div>
+        <div>
+          <div class="functions-label">🔧 Functions</div>
+          <div class="functions-list">
+            <div class="function-item">• predict(id, merchant) — Main orchestrator</div>
+            <div class="function-item">• trainModel(csv) — Train all layers</div>
+            <div class="function-item">• buildModel(data) — Initialize layers</div>
+            <div class="function-item">• loadModel(json) — Load saved model</div>
+            <div class="function-item">• saveModel() — Export to JSON</div>
+          </div>
+        </div>
+        <div>
+          <div class="functions-label">📚 Layers Managed</div>
+          <div class="functions-list">
+            <div class="function-item">• Layer 1: Rule Engine</div>
+            <div class="function-item">• Layer 2: Merchant Lookup</div>
+            <div class="function-item">• Layer 3: GBT Ensemble</div>
+            <div class="function-item">• Layer 4: Statistics</div>
+          </div>
+        </div>
+        <div class="relationships-box">
+          <div class="relationships-label">🔗 Relationships</div>
+          <div class="relationship-item-text">→ Calls all 4 prediction layers sequentially</div>
+          <div class="relationship-item-text">← Receives training data from Data Pipeline</div>
+          <div class="relationship-item-text">→ Sends results to UI System</div>
+          <div class="relationship-item-text">← Receives save/load requests from UI</div>
+        </div>
+      </div>
+
+      <!-- MODULE: Data Pipeline -->
+      <div class="module-block">
+        <div class="module-header">
+          <div class="module-icon">📥</div>
+          <div class="module-name">Data Pipeline</div>
+        </div>
+        <div class="module-description">
+          Manages CSV parsing, data validation, feature extraction, and training dataset preparation. Bridges user-provided data to model training. Handles format detection and error handling for malformed CSV files.
+        </div>
+        <div>
+          <div class="functions-label">🔧 Functions</div>
+          <div class="functions-list">
+            <div class="function-item">• parseCsv(text) — Parse CSV content</div>
+            <div class="function-item">• splitCsvLine(line) — Handle quoted fields</div>
+            <div class="function-item">• validateData(data) — Check format</div>
+            <div class="function-item">• extractFeatures(ids) — Generate vectors</div>
+            <div class="function-item">• buildTrainingSet(data) — Prepare dataset</div>
+          </div>
+        </div>
+        <div>
+          <div class="functions-label">🔄 Data Flow</div>
+          <div class="functions-list">
+            <div class="function-item">• CSV file → parseCsv()</div>
+            <div class="function-item">• Parsed rows → validateData()</div>
+            <div class="function-item">• Valid data → extractFeatures()</div>
+            <div class="function-item">• Features → Model System → training</div>
+          </div>
+        </div>
+        <div class="relationships-box">
+          <div class="relationships-label">🔗 Relationships</div>
+          <div class="relationship-item-text">← Receives CSV from UI System</div>
+          <div class="relationship-item-text">→ Sends parsed data to Model System</div>
+          <div class="relationship-item-text">→ Provides training dataset</div>
+          <div class="relationship-item-text">→ Reports validation errors to UI</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- 4. FUNCTIONS -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">⚙️ Core Functions</div>
+    <div class="section-description">
+      Key functions that implement the prediction, training, and UI logic. Each function has specific inputs, outputs, and attributes. Functions are organized by their primary responsibility and data flow.
+    </div>
+    <div class="functions-grid">
+      <!-- FUNCTION: predict() -->
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🎯</div>
+          <div class="function-name">predict()</div>
+        </div>
+        <div class="function-signature">predict(trackingId, merchantId)</div>
+        
+        <div class="attributes-section">
+          <div class="attributes-label">📥 Inputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">trackingId:</span>
+            <span class="attribute-value">string — tracking code</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">merchantId:</span>
+            <span class="attribute-value">string — merchant code</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📤 Outputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">warehouse:</span>
+            <span class="attribute-value">string (BER3, POZ1, POZ2, etc.)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">confidence:</span>
+            <span class="attribute-value">number [0-1] — prediction certainty</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">resolvedBy:</span>
+            <span class="attribute-value">string — which layer made decision</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔄 Process</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Step 1:</span>
+            <span class="attribute-value">rulePredict() → Layer 1</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Step 2:</span>
+            <span class="attribute-value">merchantPredict() → Layer 2</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Step 3:</span>
+            <span class="attribute-value">predictGBT() → Layer 3</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Step 4:</span>
+            <span class="attribute-value">confidence calc & return</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Dependencies</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Calls:</span>
+            <span class="attribute-value">rulePredict, merchantPredict, predictGBT</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Uses:</span>
+            <span class="attribute-value">confidence-calc, session-tracking</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCTION: trainModel() -->
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🔄</div>
+          <div class="function-name">trainModel()</div>
+        </div>
+        <div class="function-signature">trainModel(csvData)</div>
+        
+        <div class="attributes-section">
+          <div class="attributes-label">📥 Inputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">csvData:</span>
+            <span class="attribute-value">string — raw CSV content</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📤 Outputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">model:</span>
+            <span class="attribute-value">object — trained model state</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">accuracy:</span>
+            <span class="attribute-value">number [0-1] — cross-validated accuracy</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">status:</span>
+            <span class="attribute-value">string — training complete</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔄 Pipeline</div>
+          <div class="attribute-row">
+            <span class="attribute-key">1. Parse:</span>
+            <span class="attribute-value">parseCsv() → raw data</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">2. Build:</span>
+            <span class="attribute-value">buildRuleStats() → Layer 1</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">3. Extract:</span>
+            <span class="attribute-value">extractFeatures() → vectors</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">4. Train:</span>
+            <span class="attribute-value">buildGBT() → ensemble</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">5. Validate:</span>
+            <span class="attribute-value">k-fold cross-validation</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Dependencies</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Calls:</span>
+            <span class="attribute-value">parseCsv, buildRuleStats, buildGBT</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Updates:</span>
+            <span class="attribute-value">all layer state variables</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCTION: rulePredict() -->
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">⚡</div>
+          <div class="function-name">rulePredict()</div>
+        </div>
+        <div class="function-signature">rulePredict(trackingId)</div>
+        
+        <div class="attributes-section">
+          <div class="attributes-label">📥 Inputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">trackingId:</span>
+            <span class="attribute-value">string — tracking code</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📤 Outputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">warehouse:</span>
+            <span class="attribute-value">string | null — matched warehouse</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">confidence:</span>
+            <span class="attribute-value">number [0-1] — rule certainty</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">certain:</span>
+            <span class="attribute-value">boolean — definitive match</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🎯 Pattern Matching</div>
+          <div class="attribute-row">
+            <span class="attribute-key">20-digit:</span>
+            <span class="attribute-value">DHL/GLS numeric codes</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">11-digit:</span>
+            <span class="attribute-value">Numeric patterns (1155 prefix)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Intl format:</span>
+            <span class="attribute-value">[2 letters][digits][2 letters]</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">(Y) codes:</span>
+            <span class="attribute-value">Internal system format</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Dependencies</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Uses:</span>
+            <span class="attribute-value">ruleStats, hardcoded rules</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Layer:</span>
+            <span class="attribute-value">Layer 1 — Deterministic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCTION: buildGBT() -->
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🌳</div>
+          <div class="function-name">buildGBT()</div>
+        </div>
+        <div class="function-signature">buildGBT(features, labels)</div>
+        
+        <div class="attributes-section">
+          <div class="attributes-label">📥 Inputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">features:</span>
+            <span class="attribute-value">array — feature vectors</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">labels:</span>
+            <span class="attribute-value">array — warehouse labels</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📤 Outputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">gbtModel:</span>
+            <span class="attribute-value">array of trees — ensemble</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">gbtAccuracy:</span>
+            <span class="attribute-value">number — cross-validated accuracy</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">⚙️ Hyperparameters</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Trees:</span>
+            <span class="attribute-value">30-50 (adaptive to data size)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Max Depth:</span>
+            <span class="attribute-value">4-6 (prevent overfitting)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Learning Rate:</span>
+            <span class="attribute-value">0.05-0.1 (eta)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Loss:</span>
+            <span class="attribute-value">Cross-entropy</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Dependencies</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Requires:</span>
+            <span class="attribute-value">feature-extraction, Layer 4 stats</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Layer:</span>
+            <span class="attribute-value">Layer 3 — Ensemble ML</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCTION: parseCsv() -->
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">📄</div>
+          <div class="function-name">parseCsv()</div>
+        </div>
+        <div class="function-signature">parseCsv(text)</div>
+        
+        <div class="attributes-section">
+          <div class="attributes-label">📥 Inputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">text:</span>
+            <span class="attribute-value">string — raw CSV content</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📤 Outputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">result:</span>
+            <span class="attribute-value">object — {trackingId: {merchant, warehouse}}</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔄 Process</div>
+          <div class="attribute-row">
+            <span class="attribute-key">1. Split:</span>
+            <span class="attribute-value">Normalize line endings</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">2. Detect:</span>
+            <span class="attribute-value">Check header row</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">3. Parse:</span>
+            <span class="attribute-value">Call splitCsvLine()</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">4. Extract:</span>
+            <span class="attribute-value">Map to [trackingId, merchant, warehouse]</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Dependencies</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Calls:</span>
+            <span class="attribute-value">splitCsvLine()</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Part of:</span>
+            <span class="attribute-value">Data Pipeline</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNCTION: merchantPredict() -->
+      <div class="function-block">
+        <div class="function-header">
+          <div class="function-icon">🏪</div>
+          <div class="function-name">merchantPredict()</div>
+        </div>
+        <div class="function-signature">merchantPredict(trackingId, merchantId)</div>
+        
+        <div class="attributes-section">
+          <div class="attributes-label">📥 Inputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">trackingId:</span>
+            <span class="attribute-value">string — tracking code</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">merchantId:</span>
+            <span class="attribute-value">string — merchant code</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📤 Outputs</div>
+          <div class="attribute-row">
+            <span class="attribute-key">warehouse:</span>
+            <span class="attribute-value">string | null — merchant mapped warehouse</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">confidence:</span>
+            <span class="attribute-value">number [0-1] — P(warehouse|merchant)</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🎯 Logic</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Threshold:</span>
+            <span class="attribute-value">P(warehouse|merchant) > 0.95</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">If Pure:</span>
+            <span class="attribute-value">Return with confidence ≈ 0.92</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">If Mixed:</span>
+            <span class="attribute-value">Return null → Layer 3</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Dependencies</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Uses:</span>
+            <span class="attribute-value">merchantStats, pureMerchants</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Layer:</span>
+            <span class="attribute-value">Layer 2 — Bayesian Lookup</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- 5. COMPONENTS -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">🧩 Components & Systems</div>
+    <div class="section-description">
+      Reusable components and supporting systems that enable the core functionality. These include UI components, feature extraction, confidence calculation, and session state management. Each component has specific attributes and relationships.
+    </div>
+    <div class="components-grid">
+      <!-- COMPONENT: Feature Extraction -->
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">⚗️</div>
+          <div class="component-name">Feature Extraction</div>
+        </div>
+        <div class="component-description">
+          Converts tracking IDs into numerical feature vectors for Layer 3 (GBT). Extracts n-grams, positional substrings, character frequencies, ID length, and Markov state transitions. Critical for ML model input preparation.
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔧 Functions</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Extract:</span>
+            <span class="attribute-value">buildNGramStats(), buildMarkovStats(), buildLengthStats()</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Generate:</span>
+            <span class="attribute-value">generateFeatureVector(id)</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📊 Feature Types</div>
+          <div class="attribute-row">
+            <span class="attribute-key">N-grams:</span>
+            <span class="attribute-value">1-grams, 2-grams, 3-grams</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Positional:</span>
+            <span class="attribute-value">Substrings at fixed positions</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Length:</span>
+            <span class="attribute-value">ID length distribution</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Markov:</span>
+            <span class="attribute-value">Character transition probabilities</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Relationships</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Used by:</span>
+            <span class="attribute-value">Layer 3 (GBT), Layer 4 (Stats)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Part of:</span>
+            <span class="attribute-value">Data Pipeline</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPONENT: Confidence Calculation -->
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">📈</div>
+          <div class="component-name">Confidence Calculation</div>
+        </div>
+        <div class="component-description">
+          Computes confidence scores from deterministic rules (Layer 1) or GBT softmax output (Layer 3). Combines layer confidences, prioritizes high-confidence sources, and applies fallback logic when predictions conflict.
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🧮 Formula</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Primary:</span>
+            <span class="attribute-value">Conf(y) = max(RuleConf, ModelConf)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Softmax:</span>
+            <span class="attribute-value">P(y=k|x) = softmax(Σ trees f_t(φ(x)))</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📊 Categories</div>
+          <div class="attribute-row">
+            <span class="attribute-key">High:</span>
+            <span class="attribute-value">confidence ≥ 0.85 (green badge)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Medium:</span>
+            <span class="attribute-value">0.70 ≤ confidence < 0.85 (blue)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Low:</span>
+            <span class="attribute-value">0.50 ≤ confidence < 0.70 (amber)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Very Low:</span>
+            <span class="attribute-value">confidence < 0.50 (red)</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Relationships</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Called by:</span>
+            <span class="attribute-value">predict() main orchestrator</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Receives from:</span>
+            <span class="attribute-value">All prediction layers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPONENT: Session Tracking -->
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">📝</div>
+          <div class="component-name">Session Tracking</div>
+        </div>
+        <div class="component-description">
+          Maintains in-session state tracking: recent scans list, warehouse counts (BER, POZ, other), merchant frequencies, and session-wide statistics. Triggers UI updates and feeds data to the Recent Scans table and Merchant Panel.
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📊 State Variables</div>
+          <div class="attribute-row">
+            <span class="attribute-key">berCount:</span>
+            <span class="attribute-value">number — BER3 warehouse counts</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">pozCount:</span>
+            <span class="attribute-value">number — POZ warehouse counts</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">totalCount:</span>
+            <span class="attribute-value">number — total scanned</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">recentScans:</span>
+            <span class="attribute-value">array — last 50 predictions</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">merchantCounts:</span>
+            <span class="attribute-value">object — frequency per merchant</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔄 Scan Object</div>
+          <div class="attribute-row">
+            <span class="attribute-key">id:</span>
+            <span class="attribute-value">tracking ID</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">wh:</span>
+            <span class="attribute-value">predicted warehouse</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">conf:</span>
+            <span class="attribute-value">confidence score</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">merchant:</span>
+            <span class="attribute-value">merchant code</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">resolvedBy:</span>
+            <span class="attribute-value">which layer made decision</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">ts:</span>
+            <span class="attribute-value">timestamp</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Relationships</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Updated by:</span>
+            <span class="attribute-value">predict() after each scan</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Read by:</span>
+            <span class="attribute-value">UI System for display</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPONENT: Result Panel -->
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">🎨</div>
+          <div class="component-name">Result Panel (UI)</div>
+        </div>
+        <div class="component-description">
+          Central display showing prediction result: warehouse badge (color-coded), confidence meter with progress track, layer-by-layer breakdown, and metadata about merchant and resolver. Responds to predictions in real-time.
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🖼️ Elements</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Badge:</span>
+            <span class="attribute-value">Large warehouse name with color</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Confidence:</span>
+            <span class="attribute-value">Track bar + percentage + badge</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Breakdown:</span>
+            <span class="attribute-value">Table showing each layer result</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Metadata:</span>
+            <span class="attribute-value">Resolved-by, merchant, timestamp</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🎨 Colors</div>
+          <div class="attribute-row">
+            <span class="attribute-key">BER3:</span>
+            <span class="attribute-value">Green (#10b981)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">POZ1/POZ2:</span>
+            <span class="attribute-value">Red (#ef4444)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Unknown:</span>
+            <span class="attribute-value">Amber (#f59e0b)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Other:</span>
+            <span class="attribute-value">Blue (#3b82f6)</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Relationships</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Receives from:</span>
+            <span class="attribute-value">predict() result object</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Part of:</span>
+            <span class="attribute-value">UI System module</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPONENT: Recent Scans Table -->
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">📊</div>
+          <div class="component-name">Recent Scans Table (UI)</div>
+        </div>
+        <div class="component-description">
+          Scrollable history table logging all predictions in the session. Shows TrackingID, Warehouse, Confidence, Resolved By layer, and Time. Displays up to 50 most recent scans with row highlighting on hover.
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📋 Columns</div>
+          <div class="attribute-row">
+            <span class="attribute-key">TrackingID:</span>
+            <span class="attribute-value">Full tracking code scanned</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Warehouse:</span>
+            <span class="attribute-value">Color-coded chip (BER/POZ/other)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Confidence:</span>
+            <span class="attribute-value">Percentage + confidence badge</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Resolved By:</span>
+            <span class="attribute-value">Layer name (Rule/Merchant/GBT)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Time:</span>
+            <span class="attribute-value">Relative time (e.g., "2m ago")</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">⚙️ Features</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Sorting:</span>
+            <span class="attribute-value">Newest first (LIFO)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Max Rows:</span>
+            <span class="attribute-value">Last 50 scans kept</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Scroll:</span>
+            <span class="attribute-value">Sticky header, auto-scroll</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Relationships</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Feeds from:</span>
+            <span class="attribute-value">Session Tracking component</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Part of:</span>
+            <span class="attribute-value">UI System module</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPONENT: Merchant Panel -->
+      <div class="component-block">
+        <div class="component-header">
+          <div class="component-icon">🏪</div>
+          <div class="component-name">Merchant Panel (UI)</div>
+        </div>
+        <div class="component-description">
+          Right sidebar panel showing merchant breakdown sorted by frequency. Displays merchant name, count of scans, and percentage of total session scans. Updates dynamically as new predictions arrive.
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">📊 Columns</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Merchant:</span>
+            <span class="attribute-value">Merchant code or name</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Count:</span>
+            <span class="attribute-value">Number of scans this session</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Percentage:</span>
+            <span class="attribute-value">Count / totalCount * 100%</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">⚙️ Features</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Sorting:</span>
+            <span class="attribute-value">By frequency descending</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Scroll:</span>
+            <span class="attribute-value">Scrollable if > 10 merchants</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Update:</span>
+            <span class="attribute-value">Real-time on each new prediction</span>
+          </div>
+        </div>
+
+        <div class="attributes-section">
+          <div class="attributes-label">🔗 Relationships</div>
+          <div class="attribute-row">
+            <span class="attribute-key">Feeds from:</span>
+            <span class="attribute-value">Session Tracking (merchantCounts)</span>
+          </div>
+          <div class="attribute-row">
+            <span class="attribute-key">Part of:</span>
+            <span class="attribute-value">UI System module</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <!-- THEME FAB -->
 <button id="themeFab" title="Toggle theme">🌙</button>
 
+<!-- SCROLL TO TOP -->
+<button id="scrollTopBtn" title="Scroll to top">↑</button>
+
 <script>
-// ════════════════════════════════════════════════════════════════
-// KNOWLEDGE GRAPH DATA DEFINITION
-// ════════════════════════════════════════════════════════════════
-
-const nodeData = {
-  // ── CORE MODULES ──
-  'app': {
-    type: 'module',
-    label: 'ReturnRack App',
-    summary: 'Main application container. Orchestrates UI rendering, model lifecycle, and user interactions across desktop and mobile views.',
-    components: ['ui', 'model-system', 'data-pipeline'],
-    color: '#6366f1',
-  },
-  'ui': {
-    type: 'module',
-    label: 'UI System',
-    summary: 'Complete user interface including dashboard layout, sidebar, result panels, recent scans table, merchant breakdown, and theme toggling. Supports both desktop and mobile views.',
-    functions: ['initUI', 'renderResult', 'updateMerchantPanel', 'updateRecentScans', 'toggleTheme', 'toggleView'],
-    children: ['topbar', 'sidebar-ui', 'main-content-ui', 'inspector'],
-    color: '#a855f7',
-  },
-  'model-system': {
-    type: 'module',
-    label: 'Model System',
-    summary: 'Manages the 4-layer prediction model: rule engine, merchant lookup, GBT ensemble, and statistical models. Handles model initialization, training, and inference.',
-    functions: ['buildModel', 'predict', 'trainModel', 'loadModel', 'saveModel'],
-    children: ['layer-1-rules', 'layer-2-merchant', 'layer-3-gbt', 'layer-4-stats'],
-    color: '#10b981',
-  },
-  'data-pipeline': {
-    type: 'module',
-    label: 'Data Pipeline',
-    summary: 'Manages CSV parsing, data validation, feature extraction, and training dataset preparation. Bridges user input to model training.',
-    functions: ['parseCsv', 'validateData', 'extractFeatures', 'buildTrainingSet'],
-    color: '#f59e0b',
-  },
-
-  // ── LAYER 1: RULE ENGINE ──
-  'layer-1-rules': {
-    type: 'component',
-    label: 'Layer 1: Rule Engine',
-    summary: 'Deterministic pattern matching covering ~65% of cases at 98% accuracy. Uses hardcoded and learned prefix/suffix/pattern rules. Fast and reliable for known patterns.',
-    functions: ['rulePredict', 'buildRuleStats', 'matchPrefix', 'matchStructural'],
-    accuracy: '98%',
-    coverage: '65%',
-    color: '#10b981',
-  },
-  'layer-2-merchant': {
-    type: 'component',
-    label: 'Layer 2: Merchant Lookup',
-    summary: 'Associates tracking IDs with merchants using Bayesian probability. Identifies high-purity merchant→warehouse mappings with >95% confidence.',
-    functions: ['merchantPredict', 'buildMerchantStats', 'checkPureMerchant'],
-    accuracy: '92%',
-    coverage: '20%',
-    color: '#3b82f6',
-  },
-  'layer-3-gbt': {
-    type: 'component',
-    label: 'Layer 3: GBT Ensemble',
-    summary: 'Gradient Boosted Trees for ambiguous IDs. Learns subtle pattern dependencies using character n-grams, positional substrings, and Markov transitions.',
-    functions: ['buildGBT', 'predictGBT', 'trainGBT', 'softmaxProb'],
-    accuracy: 'Cross-validated',
-    coverage: '15%',
-    color: '#ef4444',
-  },
-  'layer-4-stats': {
-    type: 'component',
-    label: 'Layer 4: Statistics',
-    summary: 'Markov chains and n-gram frequency tables for string features. Improves predictive context for rare or novel tracking ID patterns.',
-    functions: ['buildNGramStats', 'buildMarkovStats', 'buildLengthStats'],
-    color: '#a855f7',
-  },
-
-  // ── KEY FUNCTIONS ──
-  'rulePredict': {
-    type: 'function',
-    label: 'rulePredict(id)',
-    summary: 'Applies deterministic rules to tracking ID. Returns warehouse, confidence, and certainty flag. Handles 20-digit DHL/GLS, 11-digit numeric, international format, and (Y) internal codes.',
-    inputs: ['tracking_id'],
-    outputs: ['warehouse', 'confidence', 'certain'],
-    parent: 'layer-1-rules',
-    color: '#10b981',
-  },
-  'buildRuleStats': {
-    type: 'function',
-    label: 'buildRuleStats(data)',
-    summary: 'Learns prefix→warehouse frequencies from training data. Extracts positional patterns for 20-digit IDs.',
-    inputs: ['training_data'],
-    outputs: ['ruleStats'],
-    parent: 'layer-1-rules',
-    color: '#10b981',
-  },
-  'predict': {
-    type: 'function',
-    label: 'predict(id, merchant)',
-    summary: 'Main prediction orchestrator. Cascades through all 4 layers. Returns final warehouse prediction with confidence and resolver info.',
-    inputs: ['tracking_id', 'merchant_id'],
-    outputs: ['prediction_result'],
-    parent: 'model-system',
-    color: '#6366f1',
-  },
-  'trainModel': {
-    type: 'function',
-    label: 'trainModel(csv_data)',
-    summary: 'End-to-end training pipeline. Parses CSV, extracts features, trains GBT ensemble, validates with k-fold cross-validation.',
-    inputs: ['csv_file'],
-    outputs: ['trained_model'],
-    parent: 'model-system',
-    color: '#6366f1',
-  },
-  'buildGBT': {
-    type: 'function',
-    label: 'buildGBT(features, labels)',
-    summary: 'Constructs decision tree ensemble using gradient boosting. Trees partition feature space. Uses cross-entropy loss.',
-    inputs: ['feature_matrix', 'labels'],
-    outputs: ['gbt_trees'],
-    parent: 'layer-3-gbt',
-    color: '#ef4444',
-  },
-  'parseCsv': {
-    type: 'function',
-    label: 'parseCsv(text)',
-    summary: 'Parses CSV file into {TrackingID, Merchant, Warehouse} structure. Handles quoted fields.',
-    inputs: ['csv_text'],
-    outputs: ['parsed_data'],
-    parent: 'data-pipeline',
-    color: '#f59e0b',
-  },
-  'merchantPredict': {
-    type: 'function',
-    label: 'merchantPredict(id, merchant)',
-    summary: 'Bayesian merchant lookup. Returns warehouse if merchant→warehouse mapping confidence >95%.',
-    inputs: ['tracking_id', 'merchant'],
-    outputs: ['warehouse', 'confidence'],
-    parent: 'layer-2-merchant',
-    color: '#3b82f6',
-  },
-
-  // ── UI COMPONENTS ──
-  'topbar-ui': {
-    type: 'ui-component',
-    label: 'Top Bar',
-    summary: 'Header with app logo, title, model status indicator, and control buttons.',
-    features: ['brand_display', 'status_dot', 'buttons'],
-    color: '#a855f7',
-  },
-  'sidebar-ui': {
-    type: 'ui-component',
-    label: 'Sidebar',
-    summary: 'Left panel with model state, file uploads, training progress, session stats, and warehouse split visualization.',
-    features: ['model_panel', 'file_upload', 'stats', 'charts'],
-    color: '#a855f7',
-  },
-  'result-panel': {
-    type: 'ui-component',
-    label: 'Result Panel',
-    summary: 'Central display showing prediction: warehouse badge, confidence meter, layer breakdown, metadata.',
-    features: ['badge', 'confidence_track', 'breakdown'],
-    color: '#a855f7',
-  },
-  'recent-scans': {
-    type: 'ui-component',
-    label: 'Recent Scans Table',
-    summary: 'Scrollable table logging all predictions: TrackingID, Warehouse, Confidence, Timestamp.',
-    features: ['table', 'sorting', 'highlighting'],
-    color: '#a855f7',
-  },
-  'merchant-panel': {
-    type: 'ui-component',
-    label: 'Merchant Panel',
-    summary: 'Right sidebar showing merchant breakdown by frequency and percentage.',
-    features: ['list', 'counts', 'percentages'],
-    color: '#a855f7',
-  },
-
-  // ── SUPPORTING SYSTEMS ──
-  'feature-extraction': {
-    type: 'system',
-    label: 'Feature Extraction',
-    summary: 'Converts tracking IDs into numerical vectors for GBT. Extracts n-grams, positional features, character frequencies.',
-    features: ['ngram_extraction', 'positional_features', 'markov_chains'],
-    color: '#06b6d4',
-  },
-  'confidence-calc': {
-    type: 'system',
-    label: 'Confidence Calculation',
-    summary: 'Computes scores from rules or GBT softmax. Combines layer confidences, prioritizes high-confidence sources.',
-    formula: 'Conf(y) = max(RuleConf, ModelConf)',
-    color: '#06b6d4',
-  },
-  'session-tracking': {
-    type: 'system',
-    label: 'Session Tracking',
-    summary: 'Maintains in-session state: recent scans, warehouse counts, merchant frequencies, UI update triggers.',
-    state_vars: ['berCount', 'pozCount', 'totalCount', 'recentScans'],
-    color: '#06b6d4',
-  },
-};
-
-const edgeData = [
-  // App structure
-  { from: 'app', to: 'ui', label: 'renders' },
-  { from: 'app', to: 'model-system', label: 'orchestrates' },
-  { from: 'app', to: 'data-pipeline', label: 'feeds' },
-
-  // UI hierarchy
-  { from: 'ui', to: 'topbar-ui', label: 'contains' },
-  { from: 'ui', to: 'sidebar-ui', label: 'contains' },
-  { from: 'ui', to: 'result-panel', label: 'displays' },
-  { from: 'ui', to: 'recent-scans', label: 'logs' },
-  { from: 'ui', to: 'merchant-panel', label: 'analyzes' },
-
-  // Model layers
-  { from: 'model-system', to: 'layer-1-rules', label: 'cascades' },
-  { from: 'layer-1-rules', to: 'layer-2-merchant', label: 'fallback' },
-  { from: 'layer-2-merchant', to: 'layer-3-gbt', label: 'fallback' },
-  { from: 'layer-3-gbt', to: 'layer-4-stats', label: 'uses' },
-
-  // Key functions
-  { from: 'predict', to: 'rulePredict', label: 'calls' },
-  { from: 'predict', to: 'merchantPredict', label: 'calls' },
-  { from: 'predict', to: 'buildGBT', label: 'uses' },
-  { from: 'trainModel', to: 'parseCsv', label: 'uses' },
-  { from: 'trainModel', to: 'buildRuleStats', label: 'trains' },
-  { from: 'trainModel', to: 'buildGBT', label: 'builds' },
-
-  // Support systems
-  { from: 'predict', to: 'confidence-calc', label: 'computes' },
-  { from: 'predict', to: 'session-tracking', label: 'updates' },
-  { from: 'buildGBT', to: 'feature-extraction', label: 'requires' },
-  { from: 'rulePredict', to: 'feature-extraction', label: 'uses' },
-];
-
-// ════════════════════════════════════════════════════════════════
-// VIS.JS NETWORK INITIALIZATION
-// ════════════════════════════════════════════════════════════════
-
-const nodes = new vis.DataSet(Object.entries(nodeData).map(([id, data]) => ({
-  id,
-  label: data.label,
-  color: {
-    background: data.color,
-    border: data.type === 'function' ? '#fff' : data.color,
-    highlight: {
-      background: data.color,
-      border: '#fff',
-    }
-  },
-  shape: data.type === 'function' ? 'box' : (data.type === 'system' ? 'diamond' : 'dot'),
-  title: data.summary,
-  font: { size: 12, face: 'JetBrains Mono', color: '#fff', bold: { size: 14 } },
-  borderWidth: 2,
-  shadowColor: 'rgba(0,0,0,0.5)',
-  shadowSize: 10,
-  shadowX: 0,
-  shadowY: 0,
-  shadow: true,
-})));
-
-const edges = new vis.DataSet(edgeData.map(e => ({
-  from: e.from,
-  to: e.to,
-  label: e.label,
-  arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-  font: { size: 9, align: 'middle', color: '#6b7280', face: 'JetBrains Mono' },
-  smooth: { type: 'cubicBezier', forceDirection: 'vertical' },
-  color: { color: '#4b5563', highlight: '#6366f1' },
-  width: 1.5,
-  hoverWidth: 2.5,
-})));
-
-const container = document.getElementById('network');
-const data = { nodes, edges };
-const options = {
-  physics: {
-    enabled: true,
-    barnesHut: {
-      gravitationalConstant: -20000,
-      centralGravity: 0.3,
-      springLength: 200,
-      springConstant: 0.05,
-    },
-    solver: 'barnesHut',
-    timestep: 0.5,
-  },
-  interaction: {
-    hover: true,
-    navigationButtons: true,
-    keyboard: true,
-  },
-  nodes: {
-    borderWidthSelected: 3,
-  },
-  edges: {
-    arrows: { to: { enabled: true, scaleFactor: 0.8 } },
-  },
-};
-
-const network = new vis.Network(container, data, options);
-
-// ════════════════════════════════════════════════════════════════
-// INSPECTOR PANEL & INTERACTION
-// ════════════════════════════════════════════════════════════════
-
-network.on('click', (params) => {
-  const nodeId = params.nodes[0];
-  if (!nodeId) {
-    document.getElementById('inspectorContent').innerHTML = '<div class="inspector-empty">Click any node to explore</div>';
-    return;
-  }
-
-  const node = nodeData[nodeId];
-  if (!node) return;
-
-  let html = `<div class="detail-section">
-    <span class="badge ${node.type}">${node.type.toUpperCase()}</span>
-  </div>`;
-
-  html += `<div class="plain-summary">${node.summary}</div>`;
-
-  if (node.functions && node.functions.length > 0) {
-    html += `<div class="detail-section">
-      <div class="detail-label">Functions</div>
-      <div class="detail-value">${node.functions.join(', ')}</div>
-    </div>`;
-  }
-
-  if (node.inputs && node.inputs.length > 0) {
-    html += `<div class="detail-section">
-      <div class="detail-label">Inputs</div>
-      <div class="detail-value">${node.inputs.join(', ')}</div>
-    </div>`;
-  }
-
-  if (node.outputs && node.outputs.length > 0) {
-    html += `<div class="detail-section">
-      <div class="detail-label">Outputs</div>
-      <div class="detail-value">${node.outputs.join(', ')}</div>
-    </div>`;
-  }
-
-  if (node.accuracy) {
-    html += `<div class="detail-section">
-      <div class="detail-label">Accuracy</div>
-      <div class="detail-value">${node.accuracy}</div>
-    </div>`;
-  }
-
-  if (node.coverage) {
-    html += `<div class="detail-section">
-      <div class="detail-label">Coverage</div>
-      <div class="detail-value">${node.coverage}</div>
-    </div>`;
-  }
-
-  if ((node.components || node.children || node.features) && (node.components?.length > 0 || node.children?.length > 0 || node.features?.length > 0)) {
-    const items = (node.components || node.children || node.features || []).filter(i => i);
-    if (items.length > 0) {
-      html += `<div class="detail-section">
-        <div class="detail-label">Contains / Uses</div>
-        <div class="relationships">`;
-      items.forEach(item => {
-        if (nodeData[item]) {
-          html += `<div class="relationship-item" onclick="selectNode('${item}')">${nodeData[item].label}</div>`;
-        }
-      });
-      html += `</div></div>`;
-    }
-  }
-
-  document.getElementById('inspectorContent').innerHTML = html;
-});
-
-function selectNode(nodeId) {
-  network.selectNodes([nodeId]);
-  network.focus(nodeId, { animation: { duration: 1000, easingFunction: 'easeInOutQuad' } });
-  network.emit('click', { nodes: [nodeId] });
-}
-
-// ════════════════════════════════════════════════════════════════
-// COMPONENT LIST & SEARCH
-// ════════════════════════════════════════════════════════════════
-
-let currentFilter = 'all';
-
-function populateComponentList(filter = 'all') {
-  const list = document.getElementById('componentList');
-  let filtered = Object.entries(nodeData)
-    .filter(([_, data]) => filter === 'all' || data.type === filter)
-    .map(([id, data]) => `<div class="component-item" onclick="selectNode('${id}')">${data.label}</div>`)
-    .join('');
-  list.innerHTML = filtered || '<div style="color: var(--sub); font-size: 11px; padding: 1rem .75rem;">No components</div>';
-}
-
-document.getElementById('searchBox').addEventListener('keyup', (e) => {
-  const query = e.target.value.toLowerCase();
-  const list = document.getElementById('componentList');
-  const results = Object.entries(nodeData)
-    .filter(([_, data]) => (currentFilter === 'all' || data.type === currentFilter) && data.label.toLowerCase().includes(query))
-    .map(([id, data]) => `<div class="component-item" onclick="selectNode('${id}')">${data.label}</div>`)
-    .join('');
-  list.innerHTML = results || '<div style="color: var(--sub); font-size: 11px; padding: 1rem .75rem;">No matches</div>';
-});
-
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    e.target.classList.add('active');
-    currentFilter = e.target.dataset.filter;
-    document.getElementById('searchBox').value = '';
-    populateComponentList(currentFilter);
-  });
-});
-
-// ════════════════════════════════════════════════════════════════
-// GUIDED TOURS
-// ════════════════════════════════════════════════════════════════
-
-const tours = {
-  prediction: [
-    'app', 'predict', 'rulePredict', 'layer-1-rules', 'merchantPredict', 'layer-2-merchant', 'buildGBT', 'layer-3-gbt', 'confidence-calc', 'session-tracking',
-  ],
-  training: [
-    'app', 'data-pipeline', 'parseCsv', 'buildRuleStats', 'layer-1-rules', 'feature-extraction', 'trainModel', 'buildGBT', 'layer-3-gbt', 'model-system',
-  ],
-  ui: [
-    'ui', 'topbar-ui', 'sidebar-ui', 'result-panel', 'recent-scans', 'merchant-panel',
-  ],
-  layers: [
-    'model-system', 'layer-1-rules', 'layer-2-merchant', 'layer-3-gbt', 'layer-4-stats',
-  ],
-};
-
-function startTour(tourName) {
-  const tour = tours[tourName];
-  let idx = 0;
-
-  function nextStep() {
-    if (idx < tour.length) {
-      selectNode(tour[idx]);
-      idx++;
-      setTimeout(nextStep, 1500);
-    }
-  }
-
-  nextStep();
-}
-
 // ════════════════════════════════════════════════════════════════
 // THEME TOGGLE
 // ════════════════════════════════════════════════════════════════
@@ -966,24 +1739,34 @@ function startTour(tourName) {
 document.getElementById('themeFab').addEventListener('click', () => {
   document.body.classList.toggle('light');
   document.getElementById('themeFab').textContent = document.body.classList.contains('light') ? '☀️' : '🌙';
+  localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
 });
 
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('themeFab').textContent = '☀️';
+}
+
 // ════════════════════════════════════════════════════════════════
-// RESET VIEW
+// SCROLL TO TOP
 // ════════════════════════════════════════════════════════════════
 
-document.getElementById('resetViewBtn').addEventListener('click', () => {
-  network.unselectAll();
-  network.fit();
-  document.getElementById('inspectorContent').innerHTML = '<div class="inspector-empty">Click any node to explore</div>';
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+const mainContent = document.getElementById('mainContent');
+
+mainContent.addEventListener('scroll', () => {
+  if (mainContent.scrollTop > 300) {
+    scrollTopBtn.classList.add('show');
+  } else {
+    scrollTopBtn.classList.remove('show');
+  }
 });
 
-// ════════════════════════════════════════════════════════════════
-// INITIALIZATION
-// ════════════════════════════════════════════════════════════════
-
-populateComponentList();
-network.fit();
+scrollTopBtn.addEventListener('click', () => {
+  mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+});
 </script>
 
 </body>
